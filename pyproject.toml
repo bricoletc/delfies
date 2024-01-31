@@ -6,6 +6,9 @@ authors = ["Brice Letcher <brice.letcher@ens-lyon.fr>"]
 license = "MIT"
 readme = "README.md"
 
+[tool.poetry.scripts]
+delfies = 'delfies.delfies:main'
+
 [tool.poetry.dependencies]
 python = "^3.8.1"
 pysam = "^0.22.0"
