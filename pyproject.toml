@@ -7,10 +7,18 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8.1"
 pysam = "^0.22.0"
 pybedtools = "^0.9.1"
 click = "^8.1.7"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.1.1"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+
+[tool.black]
+line-length = 88
 
 [build-system]
 requires = ["poetry-core"]
