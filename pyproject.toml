@@ -8,6 +8,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.7"
+pysam = "^0.22.0"
+pybedtools = "^0.9.1"
+click = "^8.1.7"
 
 [build-system]
 requires = ["poetry-core"]
