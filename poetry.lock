@@ -75,6 +75,20 @@ files = [
 ]
 
 [[package]]
+name = "datasci"
+version = "0.0.1"
+description = "Utilities for basic data science"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "../../../../coding/datasci"
+
+[[package]]
 name = "flake8"
 version = "7.0.0"
 description = "the modular source code checker: pep8 pyflakes and co"
@@ -482,4 +496,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "22267664c89f603489326c185d5d4b319173cb7dc97d3d0eae3c374ff848d6bf"
+content-hash = "ecc5c917d0fb473f7715c6c119b01dd4b855a82c1c69fe9e0c09bb40e7f65af5"
