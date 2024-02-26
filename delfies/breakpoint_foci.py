@@ -76,9 +76,7 @@ def record_softclips(
             new_tent[telo_feature] += 1
             position_tents[match_tent_key] = new_tent
         positions_to_commit.update(
-            range(
-                pos_to_commit - cov_window_size, pos_to_commit + cov_window_size
-            )
+            range(pos_to_commit - cov_window_size, pos_to_commit + cov_window_size)
         )
 
 
@@ -104,12 +102,26 @@ def find_breakpoint_foci_row_based(
             continue
         if (aligned_read.flag & READ_FILTER_OUT) != 0:
             continue
-        record_softclips(aligned_read, tents, position_tents, positions_to_commit, cov_window_size, telomere_seqs, telo_array_size)
+        record_softclips(
+            aligned_read,
+            tents,
+            position_tents,
+            positions_to_commit,
+            cov_window_size,
+            telomere_seqs,
+            telo_array_size,
+        )
     for start, stop in get_contiguous_ranges(positions_to_commit):
+        # Special case: sometimes sotfclipped telomere arrays extend 5' from the first position of a contig/scaffold.
+        if start < 0:
+            negative_tent_key = f"{contig_name}{ID_DELIM}-1"
+            if negative_tent_key in position_tents:
+                tents.add(position_tents[negative_tent_key])
+                position_tents.pop(negative_tent_key)
         pileup_args = dict(
             contig=contig_name,
-            start=start,
-            stop=stop,
+            start=max(start, 0),
+            stop=max(stop, 0),
             flag_filter=READ_FILTER_OUT,
             min_mapping_quality=MIN_MAPQ,
             ignore_orphans=False,
@@ -132,7 +144,6 @@ def find_breakpoint_foci_row_based(
                 )
                 tents.add(new_tent)
     write_tents(ofname_base, tents)
-
 
 
 def find_breakpoint_foci_column_based(
@@ -204,7 +215,15 @@ def find_breakpoint_foci_column_based(
             if not pileup_read.is_head:  # only process a read once
                 continue
             aligned_read = pileup_read.alignment
-            record_softclips(aligned_read, tents, position_tents, positions_to_commit, cov_window_size, telomere_seqs, telo_array_size)
+            record_softclips(
+                aligned_read,
+                tents,
+                position_tents,
+                positions_to_commit,
+                cov_window_size,
+                telomere_seqs,
+                telo_array_size,
+            )
         putatively_committed_position = ref_pos - cov_window_size
         putatively_committed_tent_key = (
             f"{ref_name}{ID_DELIM}{putatively_committed_position}"

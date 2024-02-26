@@ -96,7 +96,8 @@ def main(bam_fname, ofname, seq_region, bed, telomere_forward_seq, telo_array_si
                 if i > 0:
                     next(infile)  # Skips header
                 for line in infile:
-                    ofstream.write(line)
+                    if line != "\n":
+                        ofstream.write(line)
             os.remove(fname)
 
 
