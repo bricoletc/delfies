@@ -3,11 +3,10 @@ import multiprocessing as mp
 import os
 from glob import glob
 from pathlib import Path
-from typing import List, Optional
 
 import click
 from pybedtools import BedTool
-from pysam import AlignedSegment, AlignmentFile
+from pysam import AlignmentFile
 
 from delfies import __version__
 from delfies.seq_utils import (
@@ -16,7 +15,7 @@ from delfies.seq_utils import (
     Orientation,
     rev_comp
 )
-from delfies.breakpoint_foci import find_breakpoint_foci
+from delfies.breakpoint_foci import find_breakpoint_foci_row_based
 
 
 @click.command()
@@ -32,7 +31,7 @@ from delfies.breakpoint_foci import find_breakpoint_foci
     "--telomere_forward_seq",
     type=str,
     default=TELOMERE_SEQS["Nematoda"][Orientation.forward],
-    help="The telomere sequence used by your organism! Please make sure this is provided in 'forward' (i.e. 5'->3') orientation",
+    help="The telomere sequence used by your organism! Please make sure this is provided in 'forward' orientation (i.e. 5'->3')",
     show_default=True,
 )
 @click.option(
@@ -79,7 +78,7 @@ def main(bam_fname, ofname, seq_region, bed, telomere_forward_seq, telo_array_si
 
     with mp.Pool(processes=threads) as pool:
         pool.starmap(
-            find_breakpoint_foci,
+            find_breakpoint_foci_row_based,
             zip(
                 it.repeat(bam_fname),
                 it.repeat(ofname_base),
