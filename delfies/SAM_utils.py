@@ -66,7 +66,10 @@ def find_softclip_at_extremity(
 
 
 def has_softclipped_telo_array(
-    read: SoftclippedRead, orientation: Orientation, telomere_seqs, min_telo_array_size: int
+    read: SoftclippedRead,
+    orientation: Orientation,
+    telomere_seqs,
+    min_telo_array_size: int,
 ) -> bool:
     telo_array = telomere_seqs[orientation] * min_telo_array_size
     if orientation is Orientation.forward:

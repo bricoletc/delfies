@@ -8,13 +8,9 @@ import click
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
-from delfies import __version__, REGION_CLICK_HELP
-from delfies.seq_utils import (
-    TELOMERE_SEQS,
-    Orientation,
-    rev_comp
-)
+from delfies import REGION_CLICK_HELP, __version__
 from delfies.breakpoint_foci import find_breakpoint_foci_row_based
+from delfies.seq_utils import TELOMERE_SEQS, Orientation, rev_comp
 
 
 @click.command()
@@ -50,7 +46,16 @@ from delfies.breakpoint_foci import find_breakpoint_foci_row_based
 @click.option("--threads", type=int, default=1)
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
-def main(bam_fname, ofname, seq_region, bed, telomere_forward_seq, telo_array_size, cov_window_size, threads):
+def main(
+    bam_fname,
+    ofname,
+    seq_region,
+    bed,
+    telomere_forward_seq,
+    telo_array_size,
+    cov_window_size,
+    threads,
+):
     """
     Looks for DNA Elimination breakpoints from a bam of reads aligned to a genome.
 
@@ -73,7 +78,10 @@ def main(bam_fname, ofname, seq_region, bed, telomere_forward_seq, telo_array_si
         for interval in intervals:
             seq_regions.append(f"{interval.chrom}:{interval.start}-{interval.end}")
 
-    telomere_seqs = {Orientation.forward : telomere_forward_seq, Orientation.reverse: rev_comp(telomere_forward_seq)}
+    telomere_seqs = {
+        Orientation.forward: telomere_forward_seq,
+        Orientation.reverse: rev_comp(telomere_forward_seq),
+    }
 
     with mp.Pool(processes=threads) as pool:
         pool.starmap(

@@ -1,17 +1,17 @@
-from typing import Dict, Set
 from tempfile import NamedTemporaryFile
+from typing import Dict, Set
 
 from datasci import Tent, Tents
-from pysam import AlignmentFile, AlignedSegment
+from pysam import AlignedSegment, AlignmentFile
 
 from delfies import ID_DELIM, parse_region_string
-from delfies.seq_utils import Orientation, ORIENTATIONS
+from delfies.num_utils import get_contiguous_ranges
 from delfies.SAM_utils import (
     FLAGS,
     find_softclip_at_extremity,
     has_softclipped_telo_array,
 )
-from delfies.num_utils import get_contiguous_ranges
+from delfies.seq_utils import ORIENTATIONS, Orientation
 
 TELO_FEATURES = ["telo_containing_softclips" + ID_DELIM + o for o in ORIENTATIONS]
 READ_FILTER_OUT = (
@@ -48,7 +48,6 @@ def record_softclips(
     telomere_seqs: Dict,
     telo_array_size: int,
 ) -> None:
-    committed_positions = set()
     for telo_feature in TELO_FEATURES:
         orientation = Orientation[telo_feature.split(ID_DELIM)[1]]
         softclipped_read = find_softclip_at_extremity(aligned_read, orientation)

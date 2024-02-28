@@ -1,5 +1,5 @@
 import pytest
-from pysam import AlignedSegment, CSOFT_CLIP, CMATCH
+from pysam import CMATCH, CSOFT_CLIP, AlignedSegment
 
 from delfies.SAM_utils import (
     SoftclippedRead,
