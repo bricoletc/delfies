@@ -8,9 +8,14 @@ import click
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
-from delfies import REGION_CLICK_HELP, __version__
+from delfies import __version__, REGION_CLICK_HELP
 from delfies.breakpoint_foci import find_breakpoint_foci_row_based
 from delfies.seq_utils import TELOMERE_SEQS, Orientation, rev_comp
+from delfies.SAM_utils import (
+    DEFAULT_MIN_MAPQ,
+    DEFAULT_READ_FILTER_NAMES,
+    DEFAULT_READ_FILTER_FLAG,
+)
 
 
 @click.command()
@@ -26,7 +31,7 @@ from delfies.seq_utils import TELOMERE_SEQS, Orientation, rev_comp
     "--telomere_forward_seq",
     type=str,
     default=TELOMERE_SEQS["Nematoda"][Orientation.forward],
-    help="The telomere sequence used by your organism! Please make sure this is provided in 'forward' orientation (i.e. 5'->3')",
+    help="The telomere sequence used by your organism. Please make sure this is provided in 'forward' orientation (i.e. 5'->3')",
     show_default=True,
 )
 @click.option(
@@ -43,6 +48,20 @@ from delfies.seq_utils import TELOMERE_SEQS, Orientation, rev_comp
     help="Number of positions either side of a soft-clipped telomere-containing read to record. MUST be >=1!! [This constraint could be removed later.]",
     show_default=True,
 )
+@click.option(
+    "--min_mapq",
+    type=int,
+    default=DEFAULT_MIN_MAPQ,
+    help="Reads below this MAPQ will be filtered out",
+    show_default=True,
+)
+@click.option(
+    "--read_filter_flag",
+    type=int,
+    default=DEFAULT_READ_FILTER_FLAG,
+    help=f"Reads with any of the component bitwise flags will be filtered out (see SAM specs for details)."
+    f"   [default: {DEFAULT_READ_FILTER_FLAG} (reads with any of {DEFAULT_READ_FILTER_NAMES} are filtered out)]",
+)
 @click.option("--threads", type=int, default=1)
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -54,6 +73,8 @@ def main(
     telomere_forward_seq,
     telo_array_size,
     cov_window_size,
+    min_mapq,
+    read_filter_flag,
     threads,
 ):
     """
@@ -93,6 +114,8 @@ def main(
                 it.repeat(telomere_seqs),
                 it.repeat(telo_array_size),
                 it.repeat(cov_window_size),
+                it.repeat(min_mapq),
+                it.repeat(read_filter_flag),
                 seq_regions,
             ),
         )

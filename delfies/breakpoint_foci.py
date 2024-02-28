@@ -7,17 +7,13 @@ from pysam import AlignedSegment, AlignmentFile
 from delfies import ID_DELIM
 from delfies.interval_utils import get_contiguous_ranges, parse_region_string
 from delfies.SAM_utils import (
-    FLAGS,
+    read_flag_matches,
     find_softclip_at_extremity,
     has_softclipped_telo_array,
 )
 from delfies.seq_utils import ORIENTATIONS, Orientation
 
 TELO_FEATURES = ["telo_containing_softclips" + ID_DELIM + o for o in ORIENTATIONS]
-READ_FILTER_OUT = (
-    FLAGS["UNMAP"] | FLAGS["SECONDARY"] | FLAGS["DUP"] | FLAGS["SUPPLEMENTARY"]
-)
-MIN_MAPQ = 20
 
 
 def setup_tents() -> Dict:
@@ -79,6 +75,8 @@ def find_breakpoint_foci_row_based(
     telomere_seqs: Dict,
     telo_array_size: int,
     cov_window_size: int,
+    min_mapq: int,
+    read_filter_out: int,
     seq_region: str = None,
 ) -> None:
     tents = setup_tents()
@@ -90,9 +88,9 @@ def find_breakpoint_foci_row_based(
         fetch_args.update(contig=contig_name, start=start, stop=stop)
     bam_fstream = AlignmentFile(bam_fname)
     for aligned_read in bam_fstream.fetch(**fetch_args):
-        if aligned_read.mapping_quality < MIN_MAPQ:
+        if aligned_read.mapping_quality < min_mapq:
             continue
-        if (aligned_read.flag & READ_FILTER_OUT) != 0:
+        if read_flag_matches(aligned_read, read_filter_out):
             continue
         record_softclips(
             aligned_read,
@@ -114,8 +112,8 @@ def find_breakpoint_foci_row_based(
             contig=contig_name,
             start=max(start, 0),
             stop=max(stop, 0),
-            flag_filter=READ_FILTER_OUT,
-            min_mapping_quality=MIN_MAPQ,
+            flag_filter=read_filter_out,
+            min_mapping_quality=min_mapq,
             ignore_orphans=False,
             truncate=True,
         )

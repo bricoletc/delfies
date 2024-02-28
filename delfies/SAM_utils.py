@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from typing import Optional
+from functools import reduce
 
 from pysam import CSOFT_CLIP, AlignedSegment
 
@@ -34,6 +35,15 @@ _ordered_flags = [
     "SUPPLEMENTARY",
 ]
 FLAGS = {key: 2**x for x, key in enumerate(_ordered_flags)}
+DEFAULT_READ_FILTER_NAMES = ["UNMAP", "SECONDARY", "DUP", "SUPPLEMENTARY"]
+DEFAULT_READ_FILTER_FLAG = reduce(
+    lambda x1, x2: x1 | x2, map(lambda el: FLAGS[el], DEFAULT_READ_FILTER_NAMES)
+)
+DEFAULT_MIN_MAPQ = 20
+
+
+def read_flag_matches(read: AlignedSegment, filtering_SAM_flag: int) -> bool:
+    return read.flag & filtering_SAM_flag != 0
 
 
 def find_softclip_at_extremity(

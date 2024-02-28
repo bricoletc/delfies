@@ -2,7 +2,9 @@ import pytest
 from pysam import CMATCH, CSOFT_CLIP, AlignedSegment
 
 from delfies.SAM_utils import (
+    FLAGS,
     SoftclippedRead,
+    read_flag_matches,
     find_softclip_at_extremity,
     has_softclipped_telo_array,
 )
@@ -44,6 +46,20 @@ def pysam_read_with_5prime_softclips(pysam_basic_read):
     read.query_sequence = telo_seq_added + read.query_sequence
     read.cigartuples = [(CSOFT_CLIP, len(telo_seq_added))] + read.cigartuples
     return read
+
+
+class TestReadFiltering:
+    read_flags = FLAGS["UNMAP"] | FLAGS["DUP"]
+
+    def test_read_flag_matches(self, pysam_basic_read):
+        pysam_basic_read.flag = self.read_flags
+        assert read_flag_matches(pysam_basic_read, FLAGS["PAIRED"] | FLAGS["UNMAP"])
+
+    def test_read_flag_no_matches(self, pysam_basic_read):
+        pysam_basic_read.flag = self.read_flags
+        assert not read_flag_matches(
+            pysam_basic_read, FLAGS["PAIRED"] | FLAGS["SUPPLEMENTARY"]
+        )
 
 
 class TestSoftclipDetection:
