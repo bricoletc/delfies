@@ -39,12 +39,15 @@ def find_softclip_at_extremity(
     read: AlignedSegment, orientation: Orientation
 ) -> Optional[SoftclippedRead]:
     """
-    pysam (used version 0.20.0): attributes `reference_start` and `reference_end` refer to
-    left and rightmost position (on reference; i.e. irrespective of 'reverse' flag) of
-    consumed alignment positions (i.e. excluding hard and softclips, etc; see SAM spec).
+    In pysam (version 0.20.0), attributes `(reference|query_alignment)_start` and 
+    `(reference|query_alignment)_end` refer to positions of consumed alignment positions,
+    i.e. excluding alignment softclips. `_start` refer to 0-based inclusive 
+    alignment-consuming positions on reference and query, and `_end` to 0-based 
+    exclusive alignment positions (i.e., 1 past the last alignment-consuming position).
 
-    `reference_start`: first aligned reside (0-based)
-    `reference_end`: 1 past the last aligned residue (0-based)
+    In the returned object, we return the position of the first softclipped position in 
+    both reference and read (query). If in forward orientation in the read, 
+    no adjustment is needed, and if in reverse orientation, we subtract one.
     """
     result = SoftclippedRead(read.query_sequence, read.query_name, None, None)
     if orientation is Orientation.forward:
