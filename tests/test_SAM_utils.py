@@ -1,12 +1,19 @@
 import pytest
 from pysam import AlignedSegment, CSOFT_CLIP, CMATCH
 
-from delfies.SAM_utils import find_softclip_at_extremity, SoftclippedRead
+from delfies.SAM_utils import (
+    SoftclippedRead,
+    find_softclip_at_extremity,
+    has_softclipped_telo_array,
+)
 from delfies.seq_utils import TELOMERE_SEQS, Orientation
 
 DEFAULT_ALIGNED_SEQ = "ATGCAAAAAAAAATTTGGA"
-# This could be anything, but I'm using telomeric sequence, for sake of realism :-)
-DEFAULT_ADDED_SOFCLIPPED_SEQ = TELOMERE_SEQS["Nematoda"][Orientation.forward] * 3
+DEFAULT_TELO_DICT = TELOMERE_SEQS["Nematoda"]
+DEFAULT_MIN_TELO_ARRAY_SIZE = 3
+DEFAULT_ADDED_SOFCLIPPED_SEQ = (
+    DEFAULT_TELO_DICT[Orientation.forward] * DEFAULT_MIN_TELO_ARRAY_SIZE
+)
 
 
 @pytest.fixture
@@ -83,4 +90,55 @@ class TestSoftclipDetection:
                 pysam_read_with_5prime_softclips, Orientation.forward
             )
             is None
+        )
+
+
+@pytest.fixture
+def softclipped_read():
+    return SoftclippedRead(
+        sequence=DEFAULT_ALIGNED_SEQ,
+        name="test_sofclipped_read",
+        sc_ref=200,
+        sc_query=None,
+    )
+
+
+class TestTeloArrayDetection:
+    def test_softclipped_read_with_nontelomeric_3prime_softclips(
+        self, softclipped_read
+    ):
+        # 6 is the length of Nematoda telomeric repeat unit
+        added_softclips = "A" * 6 * DEFAULT_MIN_TELO_ARRAY_SIZE
+        softclipped_read.sequence += added_softclips
+        assert not has_softclipped_telo_array(
+            softclipped_read,
+            Orientation.forward,
+            DEFAULT_TELO_DICT,
+            DEFAULT_MIN_TELO_ARRAY_SIZE,
+        )
+
+    def test_softclipped_read_with_telomeric_3prime_softclips(self, softclipped_read):
+        added_softclips = (
+            DEFAULT_TELO_DICT[Orientation.forward] * DEFAULT_MIN_TELO_ARRAY_SIZE
+        )
+        softclipped_read.sequence += added_softclips
+        softclipped_read.sc_query = len(DEFAULT_ALIGNED_SEQ)
+        assert has_softclipped_telo_array(
+            softclipped_read,
+            Orientation.forward,
+            DEFAULT_TELO_DICT,
+            DEFAULT_MIN_TELO_ARRAY_SIZE,
+        )
+
+    def test_softclipped_read_with_telomeric_5prime_softclips(self, softclipped_read):
+        added_softclips = (
+            DEFAULT_TELO_DICT[Orientation.reverse] * DEFAULT_MIN_TELO_ARRAY_SIZE
+        )
+        softclipped_read.sequence = added_softclips + softclipped_read.sequence
+        softclipped_read.sc_query = len(added_softclips) - 1
+        assert has_softclipped_telo_array(
+            softclipped_read,
+            Orientation.reverse,
+            DEFAULT_TELO_DICT,
+            DEFAULT_MIN_TELO_ARRAY_SIZE,
         )

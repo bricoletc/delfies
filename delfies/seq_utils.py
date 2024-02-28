@@ -5,14 +5,6 @@ class Orientation(Enum):
     forward = 1
     reverse = 2
 
-    def from_str(string: str):
-        if "5prime" in string:
-            return Orientation.reverse
-        elif "3prime" in string:
-            return Orientation.forward
-        else:
-            raise ValueError(f"{string} has no '[53]prime' indication")
-
 
 ORIENTATIONS = list(map(lambda e: e.name, Orientation))
 

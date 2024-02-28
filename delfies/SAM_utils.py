@@ -40,14 +40,14 @@ def find_softclip_at_extremity(
     read: AlignedSegment, orientation: Orientation
 ) -> Optional[SoftclippedRead]:
     """
-    In pysam (version 0.20.0), attributes `(reference|query_alignment)_start` and 
+    In pysam (version 0.20.0), attributes `(reference|query_alignment)_start` and
     `(reference|query_alignment)_end` refer to positions of consumed alignment positions,
-    i.e. excluding alignment softclips. `_start` refer to 0-based inclusive 
-    alignment-consuming positions on reference and query, and `_end` to 0-based 
+    i.e. excluding alignment softclips. `_start` refer to 0-based inclusive
+    alignment-consuming positions on reference and query, and `_end` to 0-based
     exclusive alignment positions (i.e., 1 past the last alignment-consuming position).
 
-    In the returned object, we return the position of the first softclipped position in 
-    both reference and read (query). If in forward orientation in the read, 
+    In the returned object, we return the position of the first softclipped position in
+    both reference and read (query). If in forward orientation in the read,
     no adjustment is needed, and if in reverse orientation, we subtract one.
     """
     result = SoftclippedRead(read.query_sequence, read.query_name, None, None)
@@ -66,13 +66,11 @@ def find_softclip_at_extremity(
 
 
 def has_softclipped_telo_array(
-    read: SoftclippedRead, orientation: Orientation, telomere_seqs, telo_array_size: int
+    read: SoftclippedRead, orientation: Orientation, telomere_seqs, min_telo_array_size: int
 ) -> bool:
-    telo_array = telomere_seqs[orientation] * telo_array_size
+    telo_array = telomere_seqs[orientation] * min_telo_array_size
     if orientation is Orientation.forward:
         subseq = read.sequence[read.sc_query :]
     else:
         subseq = read.sequence[: read.sc_query + 1]
     return re.search(telo_array, subseq) is not None
-
-
