@@ -6,6 +6,9 @@ TODOs.md
 
 # Dev
 tmp_work
+## Test coverage
+.coverage
+htmlcov/
 
 ### Python template
 # Byte-compiled / optimized / DLL files
