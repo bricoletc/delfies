@@ -2,6 +2,13 @@ from itertools import groupby
 from operator import itemgetter
 from typing import List, Set, Tuple
 
+from delfies import REGION_DELIM1, REGION_DELIM2
+
+
+def parse_region_string(region_string: str) -> Tuple[str, int, int]:
+    contig, regs = region_string.split(REGION_DELIM1)
+    start, stop = map(lambda e: int(e.replace(",", "")), regs.split(REGION_DELIM2))
+    return contig, start, stop
 
 def get_contiguous_ranges(input_nums: Set[int]) -> List[Tuple[int, int]]:
     """
