@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Optional
 
@@ -62,3 +63,16 @@ def find_softclip_at_extremity(
         return None
     else:
         return result
+
+
+def has_softclipped_telo_array(
+    read: SoftclippedRead, orientation: Orientation, telomere_seqs, telo_array_size: int
+) -> bool:
+    telo_array = telomere_seqs[orientation] * telo_array_size
+    if orientation is Orientation.forward:
+        subseq = read.sequence[read.sc_query :]
+    else:
+        subseq = read.sequence[: read.sc_query + 1]
+    return re.search(telo_array, subseq) is not None
+
+

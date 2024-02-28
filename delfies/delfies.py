@@ -8,9 +8,8 @@ import click
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
-from delfies import __version__
+from delfies import __version__, REGION_CLICK_HELP
 from delfies.seq_utils import (
-    REGION_CLICK_HELP,
     TELOMERE_SEQS,
     Orientation,
     rev_comp

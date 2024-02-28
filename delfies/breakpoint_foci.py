@@ -1,12 +1,16 @@
 from typing import Dict, Set
-import re
 from tempfile import NamedTemporaryFile
 
 from datasci import Tent, Tents
 from pysam import AlignmentFile, AlignedSegment
 
-from delfies.seq_utils import ID_DELIM, Orientation, ORIENTATIONS, parse_region_string
-from delfies.SAM_utils import FLAGS, SoftclippedRead, find_softclip_at_extremity
+from delfies import ID_DELIM, parse_region_string
+from delfies.seq_utils import Orientation, ORIENTATIONS
+from delfies.SAM_utils import (
+    FLAGS,
+    find_softclip_at_extremity,
+    has_softclipped_telo_array,
+)
 from delfies.num_utils import get_contiguous_ranges
 
 TELO_FEATURES = ["telo_containing_softclips" + ID_DELIM + o for o in ORIENTATIONS]
@@ -14,17 +18,6 @@ READ_FILTER_OUT = (
     FLAGS["UNMAP"] | FLAGS["SECONDARY"] | FLAGS["DUP"] | FLAGS["SUPPLEMENTARY"]
 )
 MIN_MAPQ = 20
-
-
-def has_softclipped_telo_array(
-    read: SoftclippedRead, orientation: Orientation, telomere_seqs, telo_array_size: int
-) -> bool:
-    telo_array = telomere_seqs[orientation] * telo_array_size
-    if orientation is Orientation.forward:
-        subseq = read.sequence[read.sc_query :]
-    else:
-        subseq = read.sequence[: read.sc_query + 1]
-    return re.search(telo_array, subseq) is not None
 
 
 def setup_tents() -> Dict:
