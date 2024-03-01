@@ -4,7 +4,7 @@ import os
 from glob import glob
 from pathlib import Path
 
-import click
+import rich_click as click
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
@@ -16,6 +16,30 @@ from delfies.SAM_utils import (
     DEFAULT_READ_FILTER_NAMES,
     DEFAULT_READ_FILTER_FLAG,
 )
+
+
+click.rich_click.OPTION_GROUPS = {
+    "delfies": [
+        {
+            "name": "Generic",
+            "options": ["--help", "--version", "--threads"],
+        },
+        {
+            "name": "Region selection",
+            "options": ["--seq_region", "--bed"],
+        },
+        {
+            "name": "Breakpoint detection",
+            "options": [
+                "--telomere_forward_seq",
+                "--telo_array_size",
+                "--cov_window_size",
+                "--min_mapq",
+                "--read_filter_flag",
+            ],
+        },
+    ]
+}
 
 
 @click.command()
