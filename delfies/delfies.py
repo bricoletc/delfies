@@ -5,18 +5,22 @@ from glob import glob
 from pathlib import Path
 
 import rich_click as click
+from datasci import Tents
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
-from delfies import __version__, REGION_CLICK_HELP
-from delfies.breakpoint_foci import find_breakpoint_foci_row_based
-from delfies.seq_utils import TELOMERE_SEQS, Orientation, rev_comp
+from delfies import REGION_CLICK_HELP, __version__
+from delfies.breakpoint_foci import (
+    cluster_breakpoint_foci,
+    extract_breakpoint_sequences,
+    find_breakpoint_foci_row_based,
+)
 from delfies.SAM_utils import (
     DEFAULT_MIN_MAPQ,
-    DEFAULT_READ_FILTER_NAMES,
     DEFAULT_READ_FILTER_FLAG,
+    DEFAULT_READ_FILTER_NAMES,
 )
-
+from delfies.seq_utils import TELOMERE_SEQS, Orientation, rev_comp
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -38,13 +42,20 @@ click.rich_click.OPTION_GROUPS = {
                 "--read_filter_flag",
             ],
         },
+        {
+            "name": "Breakpoint extraction",
+            "options": [
+                "--seq_window_size",
+            ],
+        },
     ]
 }
 
 
 @click.command()
+@click.argument("genome_fname", type=click.Path(exists=True))
 @click.argument("bam_fname", type=click.Path(exists=True))
-@click.argument("ofname")
+@click.argument("odirname")
 @click.option("--seq_region", type=str, help=REGION_CLICK_HELP)
 @click.option(
     "--bed",
@@ -86,12 +97,20 @@ click.rich_click.OPTION_GROUPS = {
     help=f"Reads with any of the component bitwise flags will be filtered out (see SAM specs for details)."
     f"   [default: {DEFAULT_READ_FILTER_FLAG} (reads with any of {DEFAULT_READ_FILTER_NAMES} are filtered out)]",
 )
+@click.option(
+    "--seq_window_size",
+    type=int,
+    default=350,
+    help="Number of nucleotides to extract either side of each identified breakpoint",
+    show_default=True,
+)
 @click.option("--threads", type=int, default=1)
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
 def main(
+    genome_fname,
     bam_fname,
-    ofname,
+    odirname,
     seq_region,
     bed,
     telomere_forward_seq,
@@ -99,17 +118,18 @@ def main(
     cov_window_size,
     min_mapq,
     read_filter_flag,
+    seq_window_size,
     threads,
 ):
     """
     Looks for DNA Elimination breakpoints from a bam of reads aligned to a genome.
 
-    OFNAME is the output tsv file. In multiprocessing mode, its containing directory
-    will be used to store per-contig intermediate results.
+    odirname is the directory to store outputs in. In multiprocessing mode, it
+    will also be used to store per-contig intermediate results.
     """
-    ofpath = Path(ofname)
-    ofpath.parent.mkdir(parents=True, exist_ok=True)
-    ofname_base = ofpath.parent / ofpath.stem
+    odirname = Path(odirname)
+    odirname.mkdir(parents=True, exist_ok=True)
+    ofname_base = odirname / "breakpoint_foci"
     bam_fstream = AlignmentFile(bam_fname)
 
     contig_names = bam_fstream.references
@@ -144,7 +164,8 @@ def main(
             ),
         )
     all_files = glob(f"{ofname_base}_*.tsv")
-    with ofpath.open("w") as ofstream:
+    foci_tsv = f"{ofname_base}.tsv"
+    with open(foci_tsv, "w") as ofstream:
         for i, fname in enumerate(all_files):
             with open(fname) as infile:
                 if i > 0:
@@ -153,6 +174,19 @@ def main(
                     if line != "\n":
                         ofstream.write(line)
             os.remove(fname)
+
+    all_foci = Tents.from_tsv(foci_tsv)
+    clustered_foci = list(cluster_breakpoint_foci(all_foci))
+    maximal_foci = map(
+        lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
+    )
+    breakpoint_sequences = extract_breakpoint_sequences(
+        maximal_foci, genome_fname, seq_window_size
+    )
+    breakpoint_fasta = odirname / "breakpoint_sequences.fasta"
+    with breakpoint_fasta.open("w") as ofstream:
+        for breakpoint_fasta in breakpoint_sequences:
+            ofstream.write(str(breakpoint_fasta))
 
 
 if __name__ == "__main__":

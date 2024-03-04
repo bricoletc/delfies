@@ -1,9 +1,19 @@
+from dataclasses import dataclass
 from enum import Enum
 
 
 class Orientation(Enum):
     forward = 1
     reverse = 2
+
+
+@dataclass
+class FastaRecord:
+    ID: str
+    sequence: str
+
+    def __repr__(self):
+        return f">{self.ID}\n{self.sequence}\n"
 
 
 ORIENTATIONS = list(map(lambda e: e.name, Orientation))
