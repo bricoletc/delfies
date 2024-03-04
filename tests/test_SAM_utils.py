@@ -4,9 +4,9 @@ from pysam import CMATCH, CSOFT_CLIP, AlignedSegment
 from delfies.SAM_utils import (
     FLAGS,
     SoftclippedRead,
-    read_flag_matches,
     find_softclip_at_extremity,
     has_softclipped_telo_array,
+    read_flag_matches,
 )
 from delfies.seq_utils import TELOMERE_SEQS, Orientation
 

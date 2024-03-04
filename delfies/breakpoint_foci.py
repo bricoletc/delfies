@@ -1,17 +1,21 @@
+from collections import defaultdict
+from dataclasses import dataclass
+from itertools import chain as it_chain
 from tempfile import NamedTemporaryFile
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 from datasci import Tent, Tents
+from pyfastx import Fasta
 from pysam import AlignedSegment, AlignmentFile
 
 from delfies import ID_DELIM
 from delfies.interval_utils import get_contiguous_ranges, parse_region_string
 from delfies.SAM_utils import (
-    read_flag_matches,
     find_softclip_at_extremity,
     has_softclipped_telo_array,
+    read_flag_matches,
 )
-from delfies.seq_utils import ORIENTATIONS, Orientation
+from delfies.seq_utils import ORIENTATIONS, FastaRecord, Orientation, rev_comp
 
 TELO_FEATURES = ["telo_containing_softclips" + ID_DELIM + o for o in ORIENTATIONS]
 
@@ -35,6 +39,9 @@ def write_tents(ofname_base: str, tents: Tents) -> None:
 PositionTents = Dict[str, Tent]
 
 
+####################
+## Foci detection ##
+####################
 def record_softclips(
     aligned_read: AlignedSegment,
     tents: Tents,
@@ -76,7 +83,7 @@ def find_breakpoint_foci_row_based(
     telo_array_size: int,
     cov_window_size: int,
     min_mapq: int,
-    read_filter_out: int,
+    read_filter_flag: int,
     seq_region: str = None,
 ) -> None:
     tents = setup_tents()
@@ -90,7 +97,7 @@ def find_breakpoint_foci_row_based(
     for aligned_read in bam_fstream.fetch(**fetch_args):
         if aligned_read.mapping_quality < min_mapq:
             continue
-        if read_flag_matches(aligned_read, read_filter_out):
+        if read_flag_matches(aligned_read, read_filter_flag):
             continue
         record_softclips(
             aligned_read,
@@ -112,7 +119,7 @@ def find_breakpoint_foci_row_based(
             contig=contig_name,
             start=max(start, 0),
             stop=max(stop, 0),
-            flag_filter=read_filter_out,
+            flag_filter=read_filter_flag,
             min_mapping_quality=min_mapq,
             ignore_orphans=False,
             truncate=True,

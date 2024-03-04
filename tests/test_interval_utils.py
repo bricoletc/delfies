@@ -1,6 +1,7 @@
 import pytest
 
-from delfies.interval_utils import parse_region_string, get_contiguous_ranges
+from delfies.interval_utils import get_contiguous_ranges, parse_region_string
+
 
 class TestRegionStrings:
     def test_invalid_region_strings_fail(self):
@@ -18,11 +19,11 @@ class TestRegionStrings:
 
 class TestContiguousRanges:
     def test_contiguous_ranges_from_contiguous_inputs(self):
-        input_nums = set([1,2,3,4,3,2,1])
-        expected = [(1,4)]
+        input_nums = set([1, 2, 3, 4, 3, 2, 1])
+        expected = [(1, 4)]
         assert get_contiguous_ranges(input_nums) == expected
 
     def test_contiguous_ranges_from_noncontiguous_inputs(self):
-        input_nums = set([1,2,8,7,6,5])
-        expected = [(1,2), (5,8)]
+        input_nums = set([1, 2, 8, 7, 6, 5])
+        expected = [(1, 2), (5, 8)]
         assert get_contiguous_ranges(input_nums) == expected

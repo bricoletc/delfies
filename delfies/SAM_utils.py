@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 from functools import reduce
+from typing import Optional
 
 from pysam import CSOFT_CLIP, AlignedSegment
 
