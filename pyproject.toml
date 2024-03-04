@@ -16,6 +16,7 @@ pybedtools = "^0.9.1"
 click = "^8.1.7"
 datasci = {path = "/home/adminbrice/Desktop/research/coding/datasci", develop = true}
 rich-click = "^1.7.3"
+pyfastx = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
