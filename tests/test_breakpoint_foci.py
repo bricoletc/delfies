@@ -51,6 +51,7 @@ def maximal_focus():
         max_value=10,
         next_max_value=2,
         max_value_other_orientation=1,
+        interval=(205, 210),
         focus=None,
     )
     return max_focus
@@ -136,6 +137,7 @@ class TestFociWindow:
             max_value=200,
             next_max_value=20,
             max_value_other_orientation=15,
+            interval=(focus_window.Min, focus_window.Max),
             focus=focus_window.foci[0],
         )
 
@@ -150,6 +152,7 @@ class TestFociWindow:
             max_value=400,
             next_max_value=2,
             max_value_other_orientation=200,
+            interval=(focus_window.Min, focus_window.Max),
             focus=breakpoint_focus,
         )
 

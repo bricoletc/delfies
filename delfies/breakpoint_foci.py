@@ -2,7 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain as it_chain
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 from datasci import Tent, Tents
 from pyfastx import Fasta
@@ -153,6 +153,7 @@ class MaximalFocus:
     max_value: int
     next_max_value: int
     max_value_other_orientation: int
+    interval: Tuple[int, int]
     focus: Tent
 
     def update(self, query_focus: Tent):
@@ -188,8 +189,8 @@ class FociWindow:
             self.Min = start
 
     def find_peak_softclip_focus(self) -> MaximalFocus:
-        forward_maximum = MaximalFocus(Orientation.forward, 0, 0, 0, None)
-        reverse_maximum = MaximalFocus(Orientation.reverse, 0, 0, 0, None)
+        forward_maximum = MaximalFocus(Orientation.forward, 0, 0, 0, (self.Min, self.Max), None)
+        reverse_maximum = MaximalFocus(Orientation.reverse, 0, 0, 0, (self.Min, self.Max), None)
         for focus in self.foci:
             forward_maximum.update(focus)
             reverse_maximum.update(focus)
