@@ -17,7 +17,8 @@ from delfies.SAM_utils import (
 )
 from delfies.seq_utils import ORIENTATIONS, FastaRecord, Orientation, rev_comp
 
-TELO_FEATURES = ["telo_containing_softclips" + ID_DELIM + o for o in ORIENTATIONS]
+TELO_FEATURES_PREFIX = "telo_containing_softclips"
+TELO_FEATURES = [TELO_FEATURES_PREFIX + ID_DELIM + o for o in ORIENTATIONS]
 
 
 def setup_tents() -> Dict:
@@ -151,12 +152,12 @@ class MaximalFocus:
     orientation: Orientation
     max_value: int
     next_max_value: int
-    next_max_value_other_orientation: int
+    max_value_other_orientation: int
     focus: Tent
 
     def update(self, query_focus: Tent):
         query_focus_value = int(
-            query_focus[f"telo_containing_softclips__{self.orientation.name}"]
+            query_focus[f"{TELO_FEATURES_PREFIX}{ID_DELIM}{self.orientation.name}"]
         )
         if query_focus_value > self.max_value:
             self.next_max_value = self.max_value
@@ -170,7 +171,7 @@ class FociWindow:
     def __init__(self, focus):
         self.foci = [focus]
         self.Min = int(focus.start)
-        self.Max = int(focus.start)
+        self.Max = int(focus.end)
 
     def includes(self, focus: Tent, tolerance: int):
         focus_start_past_end = int(focus.start) > self.Max + tolerance
@@ -179,11 +180,12 @@ class FociWindow:
 
     def add(self, focus):
         self.foci.append(focus)
-        point = int(focus.start)
-        if point > self.Max:
-            self.Max = int(focus.start)
-        elif point < self.Min:
-            self.Min = int(focus.start)
+        start = int(focus.start)
+        end = int(focus.end)
+        if end > self.Max:
+            self.Max = end
+        if start < self.Min:
+            self.Min = start
 
     def find_peak_softclip_focus(self) -> MaximalFocus:
         forward_maximum = MaximalFocus(Orientation.forward, 0, 0, 0, None)
@@ -193,10 +195,10 @@ class FociWindow:
             reverse_maximum.update(focus)
         if forward_maximum.max_value > reverse_maximum.max_value:
             max_maximum = forward_maximum
-            max_maximum.next_max_value_other_orientation = reverse_maximum.max_value
+            max_maximum.max_value_other_orientation = reverse_maximum.max_value
         else:
             max_maximum = reverse_maximum
-            max_maximum.next_max_value_other_orientation = forward_maximum.max_value
+            max_maximum.max_value_other_orientation = forward_maximum.max_value
         return max_maximum
 
     def __repr__(self):
@@ -215,7 +217,7 @@ def cluster_breakpoint_foci(foci: Tents, tolerance: int = 10) -> List[FociWindow
                 break
         if not found_window:
             contig_windows.append(FociWindow(focus))
-    return it_chain(*result.values())
+    return list(it_chain(*result.values()))
 
 
 def extract_breakpoint_sequences(
@@ -235,6 +237,6 @@ def extract_breakpoint_sequences(
         if max_focus.orientation is Orientation.reverse:
             breakpoint_sequence = rev_comp(breakpoint_sequence)
             strand_name = "5prime"
-        breakpoint_name = f"S2G_{strand_name}_{focus.contig} breakpoint_pos:{start} num_telo_containing_softclips:{max_focus.max_value} next_best_value_on_same_strand:{max_focus.next_max_value} best_value_on_other_strand:{max_focus.next_max_value_other_orientation}"
+        breakpoint_name = f"S2G_{strand_name}_{focus.contig} breakpoint_pos:{start} num_{TELO_FEATURES_PREFIX}:{max_focus.max_value} next_best_value_on_same_strand:{max_focus.next_max_value} best_value_on_other_strand:{max_focus.max_value_other_orientation}"
         result.append(FastaRecord(breakpoint_name, breakpoint_sequence))
     return result

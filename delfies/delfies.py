@@ -176,10 +176,11 @@ def main(
             os.remove(fname)
 
     all_foci = Tents.from_tsv(foci_tsv)
-    clustered_foci = list(cluster_breakpoint_foci(all_foci))
+    clustered_foci = cluster_breakpoint_foci(all_foci)
     maximal_foci = map(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
+    maximal_foci = sorted(maximal_foci, key = lambda e: e.max_value, reverse=True)
     breakpoint_sequences = extract_breakpoint_sequences(
         maximal_foci, genome_fname, seq_window_size
     )
