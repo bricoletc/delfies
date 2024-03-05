@@ -46,6 +46,7 @@ click.rich_click.OPTION_GROUPS = {
             "name": "Breakpoint extraction",
             "options": [
                 "--seq_window_size",
+                "--min_supporting_reads",
             ],
         },
     ]
@@ -98,6 +99,13 @@ click.rich_click.OPTION_GROUPS = {
     f"   [default: {DEFAULT_READ_FILTER_FLAG} (reads with any of {DEFAULT_READ_FILTER_NAMES} are filtered out)]",
 )
 @click.option(
+    "--min_supporting_reads",
+    type=int,
+    default=10,
+    help="Minimum number of reads supporting a breakpoint",
+    show_default=True,
+)
+@click.option(
     "--seq_window_size",
     type=int,
     default=350,
@@ -118,6 +126,7 @@ def main(
     cov_window_size,
     min_mapq,
     read_filter_flag,
+    min_supporting_reads,
     seq_window_size,
     threads,
 ):
@@ -180,6 +189,7 @@ def main(
     maximal_foci = map(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
+    maximal_foci = filter(lambda m: m.max_value >= min_supporting_reads, maximal_foci)
     maximal_foci = sorted(maximal_foci, key = lambda e: e.max_value, reverse=True)
     breakpoint_sequences = extract_breakpoint_sequences(
         maximal_foci, genome_fname, seq_window_size

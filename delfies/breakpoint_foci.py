@@ -228,6 +228,8 @@ def extract_breakpoint_sequences(
     for max_focus in maximal_foci:
         focus = max_focus.focus
         start = int(focus.start)
+        if start < 0:
+            continue
         breakpoint_sequence = (
             genome.fetch(focus.contig, (start - seq_window_size, start))
             + "N"
