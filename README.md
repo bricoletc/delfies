@@ -2,6 +2,12 @@
 
 Delfies is a tool for the detection of DNA Elimination breakpoints 
 
+## Tool constraints
+
+* Currently `delfies` looks for telomeric units repeated at least `--telo_array_size` times 
+  at the beginning of the soft-clipped region of a read, with no mismatches in the telomeric 
+  repeat unit.
+
 # Other tools
 
 | Tool name   | Paper | Code |
