@@ -29,3 +29,10 @@ def rev_comp(seq: str) -> str:
 TELOMERE_SEQS = {
     "Nematoda": {Orientation.forward: "TTAGGC", Orientation.reverse: "GCCTAA"}
 }
+
+
+def cyclic_shifts(input_str: str):
+    result = list()
+    for i in range(len(input_str)):
+        result.append(input_str[i:] + input_str[:i])
+    return result

@@ -81,9 +81,17 @@ def has_softclipped_telo_array(
     telomere_seqs,
     min_telo_array_size: int,
 ) -> bool:
-    telo_array = telomere_seqs[orientation] * min_telo_array_size
+    """
+    Note: we allow for the softclipped telo array to start with any cyclic shift
+    of the telomeric repeat unit.
+    """
+    telo_unit = telomere_seqs[orientation]
+    telo_array = telo_unit * min_telo_array_size
+    subseq_clip_end = len(telo_array) + len(telo_unit)
     if orientation is Orientation.forward:
-        subseq = read.sequence[read.sc_query :]
+        end = read.sc_query + subseq_clip_end
+        subseq = read.sequence[read.sc_query : end]
     else:
-        subseq = read.sequence[: read.sc_query + 1]
+        start = max(read.sc_query + 1 - subseq_clip_end, 0)
+        subseq = read.sequence[start: read.sc_query + 1]
     return re.search(telo_array, subseq) is not None
