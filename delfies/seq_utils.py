@@ -22,7 +22,7 @@ REVCOMP_TABLE_DNA = dict(A="T", C="G", G="C", T="A", N="N")
 
 
 def rev_comp(seq: str) -> str:
-    result = "".join([REVCOMP_TABLE_DNA[elem] for elem in seq[::-1]])
+    result = "".join([REVCOMP_TABLE_DNA[elem] for elem in seq[::-1].upper()])
     return result
 
 
