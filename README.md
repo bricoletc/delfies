@@ -2,6 +2,25 @@
 
 Delfies is a tool for the detection of DNA Elimination breakpoints 
 
+## Installation
+
+Using `pip` (or equivalent - poetry, etc.): 
+```sh
+git clone https://github.com/bricoletc/delfies/
+pip install ./delfies
+```
+
+## Usage
+
+`delfies` takes as input a genome fasta (gzipped supported) and a BAM of sequencing reads 
+aligned to the genome. 
+
+For the full list of options, see:
+
+```sh
+delfies --help
+```
+
 ## Tool constraints
 
 * Currently `delfies` looks for telomeric units repeated at least `--telo_array_size` times 
