@@ -16,6 +16,8 @@ pip install ./delfies
 `delfies` takes as input a genome fasta (gzipped supported) and a BAM of sequencing reads 
 aligned to the genome. 
 
+Do use the `--threads` option if you have multiple cores/CPUs available.
+
 For the full list of options, see:
 
 ```sh
