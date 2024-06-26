@@ -196,7 +196,7 @@ def main(
         for maximal_focus in maximal_foci:
             strand = "+" if maximal_focus.orientation is Orientation.forward else "-"
             breakpoint_name = f'maximal_focus_window:{maximal_focus.interval[0]}-{maximal_focus.interval[1]}'
-            out_line = [maximal_focus.focus.contig, maximal_focus.focus.start, maximal_focus.focus.end, breakpoint_name, strand]
+            out_line = [maximal_focus.focus.contig, maximal_focus.focus.start, maximal_focus.focus.end, breakpoint_name, ".", strand]
             ofstream.write("\t".join(map(str, out_line)) + "\n")
 
     breakpoint_sequences = extract_breakpoint_sequences(
