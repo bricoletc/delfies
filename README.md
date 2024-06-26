@@ -2,15 +2,16 @@
 
 Delfies is a tool for the detection of DNA Elimination breakpoints 
 
-## Installation
+# Getting started
 
+## Installation
 Using `pip` (or equivalent - poetry, etc.): 
 ```sh
 git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
 ```
 
-## Usage/Getting started
+## Usage
 
 `delfies` takes as input a genome fasta (gzipped supported) and a BAM of sequencing reads 
 aligned to the genome. 
@@ -36,26 +37,34 @@ The main outputs of `delfies` are:
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
    of identified elimination breakpoints. The header field contains:
    - A sequence ID as `<detection_mode>_<breakpoint_type>_<chrom>`
+
      `detection_mode` is currently always S2G, so ignore this (TODO: add G2S)
+
      `breakpoint_type` is '3prime' for a '+' breakpoint, and '5prime' for a '-' breakpoint (see BED file above)
+
      `chrom` is the contig/scaffold/chromosome name
     - Some additional information is provided, e.g. the position of the breakpoint 
       and the number of reads supporting the breakpoint ('num_telo_containing_softclips')
 
-**Importantly, check the results yourself!** E.g., by loading the input fasta and BAM and 
-output `breakpoint_maxima.bed` in [IGV](https://github.com/igvteam/igv).
+**Importantly, visualise the results yourself.** 
+E.g., by loading the input fasta and BAM and output `breakpoint_maxima.bed` in [IGV](https://github.com/igvteam/igv).
 
-# TODOs 
+# What's next
 
 ## Tool constraints
 
 * Currently `delfies` looks for telomeric units repeated at least `--telo_array_size` times 
   at the beginning of the soft-clipped region of a read, with no mismatches in the telomeric 
   repeat unit.
+
+## Detection mode 
 * Add 'G2S' detection mode
+
+## Benchmark
+
 * Possibly benchmark against one or more tools below.
 
-## Other tools
+### Other tools
 
 | Tool name   | Paper | Code |
 | ----------- | ----- | ---- |
