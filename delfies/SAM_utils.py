@@ -18,6 +18,7 @@ class SoftclippedRead:
     name: str
     sc_ref: int
     sc_query: int
+    sc_length: int
 
 
 _ordered_flags = [
@@ -60,15 +61,17 @@ def find_softclip_at_extremity(
     both reference and read (query). If in forward orientation in the read,
     no adjustment is needed, and if in reverse orientation, we subtract one.
     """
-    result = SoftclippedRead(read.query_sequence, read.query_name, None, None)
+    result = SoftclippedRead(read.query_sequence, read.query_name, None, None, None)
     if orientation is Orientation.forward:
         if read.cigartuples[-1][0] == CSOFT_CLIP:
             result.sc_ref = read.reference_end
             result.sc_query = read.query_alignment_end
+            result.sc_length = len(result.sequence) - result.sc_query
     else:
         if read.cigartuples[0][0] == CSOFT_CLIP:
             result.sc_ref = read.reference_start - 1
             result.sc_query = read.query_alignment_start - 1
+            result.sc_length = result.sc_query + 1
     if result.sc_ref is None:
         return None
     else:

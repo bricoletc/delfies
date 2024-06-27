@@ -1,8 +1,27 @@
 from itertools import groupby
 from operator import itemgetter
 from typing import List, Set, Tuple
+from dataclasses import dataclass
 
 from delfies import REGION_DELIM1, REGION_DELIM2
+
+
+@dataclass
+class Interval:
+    name: str
+    start: int
+    end: int
+
+    def spans(self, query_pos: int) -> bool:
+        return start <= query_pos <= end
+
+    def to_region_string(self) -> str:
+        return f"{self.name}{REGION_DELIM1}{self.start}{REGION_DELIM2}{self.end}"
+
+    @classmethod
+    def from_region_string(cls, region_string: str) -> str:
+        contig, start, stop = parse_region_string(region_string)
+        return Interval(contig, start, stop)
 
 
 def parse_region_string(region_string: str) -> Tuple[str, int, int]:

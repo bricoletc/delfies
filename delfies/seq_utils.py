@@ -1,5 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import List
+import re
+
+from pyfastx import Fasta
+
+from delfies.interval_utils import Interval, parse_region_string
 
 
 class Orientation(Enum):
@@ -35,4 +41,38 @@ def cyclic_shifts(input_str: str):
     result = list()
     for i in range(len(input_str)):
         result.append(input_str[i:] + input_str[:i])
+    return result
+
+
+def find_all_occurrences_in_genome(
+    query_sequence: str,
+    genome_fasta: Fasta,
+    seq_regions,
+    parse_seq_region: bool,
+    interval_window_size: int,
+) -> List[str]:
+    result = list()
+    patterns = {Orientation.forward: re.compile(query_sequence), Orientation.reverse: re.compile(rev_comp(query_sequence))}
+    for seq_region in seq_regions:
+        if parse_region_string:
+            contig, start, stop = parse_region_string(seq_region)
+            relative_to_absolute = start
+            target_seq = genome_fasta[contig][start:stop]
+        else:
+            contig = seq_region
+            relative_to_absolute = 0
+            target_seq = genome_fasta[contig]
+        for orientation, pattern in patterns.items():
+            for match in pattern.finditer(str(target_seq)):
+                if orientation is Orientation.forward:
+                    interval_midpoint = match.start()
+                else:
+                    interval_midpoint = match.end()
+                interval_midpoint += relative_to_absolute
+                new_interval = Interval(
+                    name=contig,
+                    start=interval_midpoint - interval_window_size,
+                    end=interval_midpoint + interval_window_size,
+                )
+                result.append(new_interval.to_region_string())
     return result

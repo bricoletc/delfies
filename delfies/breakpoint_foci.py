@@ -5,7 +5,6 @@ from tempfile import NamedTemporaryFile
 from typing import Dict, List, Set, Tuple
 
 from datasci import Tent, Tents
-from pyfastx import Fasta
 from pysam import AlignedSegment, AlignmentFile
 
 from delfies import ID_DELIM, BreakpointType
@@ -15,7 +14,7 @@ from delfies.SAM_utils import (
     has_softclipped_telo_array,
     read_flag_matches,
 )
-from delfies.seq_utils import ORIENTATIONS, FastaRecord, Orientation, rev_comp
+from delfies.seq_utils import ORIENTATIONS, Orientation, rev_comp
 
 READ_SUPPORT_PREFIX = "num_supporting_reads"
 READ_SUPPORTS = [READ_SUPPORT_PREFIX + ID_DELIM + o for o in ORIENTATIONS]
@@ -29,6 +28,8 @@ class BreakpointDetectionParams:
     cov_window_size: int
     min_mapq: int
     read_filter_flag: int
+    min_supporting_reads: int
+    parse_seq_region: bool
     breakpoint_type: str = ""
     ofname_base: str = None
 
@@ -73,22 +74,23 @@ def record_softclips(
         softclipped_read = find_softclip_at_extremity(aligned_read, orientation)
         if softclipped_read is None:
             continue
-        softclipped_telo_array_found = has_softclipped_telo_array(
-            sofclipped_read,
-            orientation,
-            detection_params.telomere_seqs,
-            detection_params.telo_array_size,
-        )
-        skip_read = (
-            # S2G mode: only include reads with telo-containing soft-clips
-            detection_params.breakpoint_type is BreakpointType.S2G
-            and not softclipped_telo_array_found
-        ) | (
-            # G2S mode: only include reads with no telo-containing soft-clips
-            detection_params.breakpoint_type is BreakpointType.G2S
-            and softclipped_telo_array_found
-        )
-        if skip_read:
+        if detection_params.breakpoint_type is BreakpointType.G2S:
+            softclipped_telo_array_found = has_softclipped_telo_array(
+                softclipped_read,
+                orientation,
+                detection_params.telomere_seqs,
+                min_telo_array_size=3,
+            )
+            keep_read = not softclipped_telo_array_found
+        else:
+            softclipped_telo_array_found = has_softclipped_telo_array(
+                softclipped_read,
+                orientation,
+                detection_params.telomere_seqs,
+                detection_params.telo_array_size
+            )
+            keep_read = softclipped_telo_array_found
+        if not keep_read:
             continue
         pos_to_commit = softclipped_read.sc_ref
         ref_name = aligned_read.reference_name
@@ -97,27 +99,30 @@ def record_softclips(
             position_tents[match_tent_key][read_support] += 1
         else:
             new_tent = tents.new()
-            new_tent.update(contig=ref_name, start=pos_to_commit, end=pos_to_commit + 1, breakpoint_type=str(detection_params.breakpoint_type))
+            new_tent.update(
+                contig=ref_name,
+                start=pos_to_commit,
+                end=pos_to_commit + 1,
+                breakpoint_type=str(detection_params.breakpoint_type),
+            )
             new_tent[read_support] += 1
             position_tents[match_tent_key] = new_tent
         positions_to_commit.update(
-            range(pos_to_commit - cov_window_size, pos_to_commit + cov_window_size)
+            range(
+                pos_to_commit - detection_params.cov_window_size,
+                pos_to_commit + detection_params.cov_window_size,
+            )
         )
 
 
 def find_breakpoint_foci_row_based(
     detection_params: BreakpointDetectionParams,
     seq_region: str,
-    parse_seq_region: bool,
 ) -> None:
-    """
-    If `parse_seq_region` is True, `seq_region` is taken to be the name of a contig;
-    else, it is taken to be a `region_string` - for how that's defined, see `delfies/__init__.py`.
-    """
     tents = setup_tents()
     position_tents: PositionTents = {}
     positions_to_commit = set()
-    if region_is_region_string:
+    if detection_params.parse_seq_region:
         contig_name, start, stop = parse_region_string(seq_region)
         fetch_args = dict(contig=contig_name, start=start, stop=stop)
     else:
@@ -125,9 +130,9 @@ def find_breakpoint_foci_row_based(
         fetch_args = dict(contig=contig_name)
     bam_fstream = AlignmentFile(detection_params.bam_fname)
     for aligned_read in bam_fstream.fetch(**fetch_args):
-        if aligned_read.mapping_quality < min_mapq:
+        if aligned_read.mapping_quality < detection_params.min_mapq:
             continue
-        if read_flag_matches(aligned_read, read_filter_flag):
+        if read_flag_matches(aligned_read, detection_params.read_filter_flag):
             continue
         record_softclips(
             aligned_read, tents, position_tents, positions_to_commit, detection_params
@@ -248,29 +253,3 @@ def cluster_breakpoint_foci(foci: Tents, tolerance: int = 10) -> List[FociWindow
         if not found_window:
             contig_windows.append(FociWindow(focus))
     return list(it_chain(*result.values()))
-
-
-MaximalFoci = List[MaximalFocus]
-
-def extract_breakpoint_sequences(
-    maximal_foci: MaximalFoci, genome_fasta: str, seq_window_size: int
-) -> List[FastaRecord]:
-    genome = Fasta(genome_fasta)
-    result = list()
-    for max_focus in maximal_foci:
-        focus = max_focus.focus
-        start = int(focus.start)
-        if start < 0:
-            continue
-        breakpoint_sequence = (
-            genome.fetch(focus.contig, (start - seq_window_size, start))
-            + "N"
-            + genome.fetch(focus.contig, (start, start + seq_window_size))
-        )
-        strand_name = "3prime"
-        if max_focus.orientation is Orientation.reverse:
-            breakpoint_sequence = rev_comp(breakpoint_sequence)
-            strand_name = "5prime"
-        breakpoint_name = f"S2G_{strand_name}_{focus.contig} breakpoint_pos:{start} {READ_SUPPORT_PREFIX}:{max_focus.max_value} next_best_value_on_same_strand:{max_focus.next_max_value} best_value_on_other_strand:{max_focus.max_value_other_orientation}"
-        result.append(FastaRecord(breakpoint_name, breakpoint_sequence))
-    return result
