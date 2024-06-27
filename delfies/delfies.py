@@ -37,6 +37,7 @@ from delfies.seq_utils import (
     FastaRecord,
     find_all_occurrences_in_genome,
 )
+from delfies.interval_utils import Interval, Intervals
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -98,7 +99,7 @@ def extract_breakpoint_sequences(
 
 
 def run_breakpoint_detection(
-    detection_params: BreakpointDetectionParams, seq_regions, threads
+        detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
 ) -> MaximalFoci:
     with mp.Pool(processes=threads) as pool:
         pool.starmap(
@@ -257,18 +258,18 @@ def main(
     ofname_base = odirname / "breakpoint_foci"
     bam_fstream = AlignmentFile(bam_fname)
 
-    seq_regions = bam_fstream.references
-    parse_seq_region = False
+    seq_regions: Intervals = list()
     if seq_region is not None:
-        seq_regions = [seq_region]
-        parse_seq_region = True
+        seq_regions.append(Interval.from_region_string(seq_region))
         threads = 1
-    if bed is not None:
+    elif bed is not None:
         intervals = BedTool(bed)
-        seq_regions = list()
         for interval in intervals:
-            seq_regions.append(f"{interval.chrom}:{interval.start}-{interval.end}")
-        parse_seq_region = True
+            seq_regions.append(Interval.from_pybedtools_interval(interval))
+    else:
+        # Analyse the entire genome
+        for contig in bam_fstream.references:
+            seq_regions.append(Interval(contig))
 
     telomere_seqs = {
         Orientation.forward: telomere_forward_seq,
@@ -283,7 +284,6 @@ def main(
         min_mapq=min_mapq,
         read_filter_flag=read_filter_flag,
         min_supporting_reads=min_supporting_reads,
-        parse_seq_region=parse_seq_region,
     )
 
     try:
@@ -303,17 +303,14 @@ def main(
                 * detection_params.telo_array_size
             )
             genome_fasta = Fasta(genome_fname, build_index=True)
-            seq_regions_to_analyse = find_all_occurrences_in_genome(
+            seq_regions = find_all_occurrences_in_genome(
                 telomere_query,
                 genome_fasta,
                 seq_regions,
-                parse_seq_region,
                 interval_window_size=20,
             )
-        else:
-            seq_regions_to_analyse = seq_regions
         maximal_foci += run_breakpoint_detection(
-            detection_params, seq_regions_to_analyse, threads
+            detection_params, seq_regions, threads
         )
 
     write_breakpoint_bed(maximal_foci, odirname)

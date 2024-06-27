@@ -8,7 +8,7 @@ from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
 
 from delfies import ID_DELIM, BreakpointType
-from delfies.interval_utils import get_contiguous_ranges, parse_region_string
+from delfies.interval_utils import get_contiguous_ranges, Interval
 from delfies.SAM_utils import (
     find_softclip_at_extremity,
     has_softclipped_telo_array,
@@ -29,7 +29,6 @@ class BreakpointDetectionParams:
     min_mapq: int
     read_filter_flag: int
     min_supporting_reads: int
-    parse_seq_region: bool
     breakpoint_type: str = ""
     ofname_base: str = None
 
@@ -68,6 +67,7 @@ def record_softclips(
     position_tents: PositionTents,
     positions_to_commit: Set[int],
     detection_params: BreakpointDetectionParams,
+    seq_region: Interval,
 ) -> None:
     for read_support in READ_SUPPORTS:
         orientation = Orientation[read_support.split(ID_DELIM)[1]]
@@ -81,13 +81,19 @@ def record_softclips(
                 detection_params.telomere_seqs,
                 min_telo_array_size=3,
             )
-            keep_read = not softclipped_telo_array_found
+            softclips_start_inside_target_region = seq_region.spans(
+                softclipped_read.sc_ref
+            )
+            keep_read = (
+                softclips_start_inside_target_region
+                and not softclipped_telo_array_found
+            )
         else:
             softclipped_telo_array_found = has_softclipped_telo_array(
                 softclipped_read,
                 orientation,
                 detection_params.telomere_seqs,
-                detection_params.telo_array_size
+                detection_params.telo_array_size,
             )
             keep_read = softclipped_telo_array_found
         if not keep_read:
@@ -117,16 +123,17 @@ def record_softclips(
 
 def find_breakpoint_foci_row_based(
     detection_params: BreakpointDetectionParams,
-    seq_region: str,
+    seq_region: Interval,
 ) -> None:
     tents = setup_tents()
     position_tents: PositionTents = {}
     positions_to_commit = set()
-    if detection_params.parse_seq_region:
-        contig_name, start, stop = parse_region_string(seq_region)
-        fetch_args = dict(contig=contig_name, start=start, stop=stop)
+    contig_name = seq_region.name
+    if seq_region.has_coordinates():
+        fetch_args = dict(
+            contig=contig_name, start=seq_region.start, stop=seq_region.end
+        )
     else:
-        contig_name = seq_region
         fetch_args = dict(contig=contig_name)
     bam_fstream = AlignmentFile(detection_params.bam_fname)
     for aligned_read in bam_fstream.fetch(**fetch_args):
@@ -135,7 +142,12 @@ def find_breakpoint_foci_row_based(
         if read_flag_matches(aligned_read, detection_params.read_filter_flag):
             continue
         record_softclips(
-            aligned_read, tents, position_tents, positions_to_commit, detection_params
+            aligned_read,
+            tents,
+            position_tents,
+            positions_to_commit,
+            detection_params,
+            seq_region,
         )
     # Record read depth at breakpoint foci
     for start, stop in get_contiguous_ranges(positions_to_commit):

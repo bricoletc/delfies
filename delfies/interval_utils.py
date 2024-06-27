@@ -9,20 +9,33 @@ from delfies import REGION_DELIM1, REGION_DELIM2
 @dataclass
 class Interval:
     name: str
-    start: int
-    end: int
+    start: int = None
+    end: int = None
 
     def spans(self, query_pos: int) -> bool:
-        return start <= query_pos <= end
+        if not self.has_coordinates():
+            raise ValueError("Interval object has not been assigned coordinates")
+        return self.start <= query_pos <= self.end
 
     def to_region_string(self) -> str:
-        return f"{self.name}{REGION_DELIM1}{self.start}{REGION_DELIM2}{self.end}"
+        result = f"{self.name}"
+        if self.has_coordinates():
+            result += f"{REGION_DELIM1}{self.start}{REGION_DELIM2}{self.end}"
+        return result
 
     @classmethod
-    def from_region_string(cls, region_string: str) -> str:
-        contig, start, stop = parse_region_string(region_string)
-        return Interval(contig, start, stop)
+    def from_region_string(cls, region_string: str) -> "Interval":
+        contig, start, end = parse_region_string(region_string)
+        return Interval(contig, start, end)
 
+    @classmethod
+    def from_pybedtools_interval(cls, pybedtools_interval) -> "Interval":
+        return Interval(pybedtools_interval.chrom, pybedtools_interval.start, pybedtools_interval.end)
+
+    def has_coordinates(self) -> bool:
+        return self.start is not None and self.end is not None
+
+Intervals = List[Interval]
 
 def parse_region_string(region_string: str) -> Tuple[str, int, int]:
     contig, regs = region_string.split(REGION_DELIM1)
