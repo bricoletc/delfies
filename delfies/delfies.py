@@ -9,11 +9,12 @@ from datasci import Tents
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
-from delfies import REGION_CLICK_HELP, __version__
+from delfies import REGION_CLICK_HELP, __version__, all_breakpoint_types
 from delfies.breakpoint_foci import (
     cluster_breakpoint_foci,
     extract_breakpoint_sequences,
     find_breakpoint_foci_row_based,
+    BreakpointDetectionParams,
 )
 from delfies.SAM_utils import (
     DEFAULT_MIN_MAPQ,
@@ -35,6 +36,7 @@ click.rich_click.OPTION_GROUPS = {
         {
             "name": "Breakpoint detection",
             "options": [
+                "--breakpoint_type",
                 "--telomere_forward_seq",
                 "--telo_array_size",
                 "--cov_window_size",
@@ -112,6 +114,12 @@ click.rich_click.OPTION_GROUPS = {
     help="Number of nucleotides to extract either side of each identified breakpoint",
     show_default=True,
 )
+@click.option(
+    "--breakpoint_type",
+    "-b",
+    type=click.Choice(list(map(str, all_breakpoint_types))),
+    help="The type of breakpoint to look for. If not provided, will look for all types of breakpoints",
+)
 @click.option("--threads", type=int, default=1)
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -133,16 +141,14 @@ def main(
     """
     Looks for DNA Elimination breakpoints from a bam of reads aligned to a genome.
 
-    odirname is the directory to store outputs in. In multiprocessing mode, it
-    will also be used to store per-contig intermediate results.
+    odirname is the directory to store outputs in. It is also used to store per-contig intermediate results.
     """
     odirname = Path(odirname)
     odirname.mkdir(parents=True, exist_ok=True)
     ofname_base = odirname / "breakpoint_foci"
     bam_fstream = AlignmentFile(bam_fname)
 
-    contig_names = bam_fstream.references
-    seq_regions = it.repeat(seq_region)
+    seq_regions = bam_fstream.references
     if seq_region is not None:
         seq_regions = [seq_region]
         threads = 1
@@ -157,18 +163,21 @@ def main(
         Orientation.reverse: rev_comp(telomere_forward_seq),
     }
 
+    detection_params = BreakpointDetectionParams(
+        bam_fname=bam_fname,
+        ofname_base=ofname_base,
+        telomere_seqs=telomere_seqs,
+        telo_array_size=telo_array_size,
+        cov_window_size=cov_window_size,
+        min_mapq=min_mapq,
+        read_filter_flag=read_filter_flag,
+    )
+
     with mp.Pool(processes=threads) as pool:
         pool.starmap(
             find_breakpoint_foci_row_based,
             zip(
-                it.repeat(bam_fname),
-                it.repeat(ofname_base),
-                contig_names,
-                it.repeat(telomere_seqs),
-                it.repeat(telo_array_size),
-                it.repeat(cov_window_size),
-                it.repeat(min_mapq),
-                it.repeat(read_filter_flag),
+                it.repeat(detection_params),
                 seq_regions,
             ),
         )
@@ -190,13 +199,20 @@ def main(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
     maximal_foci = filter(lambda m: m.max_value >= min_supporting_reads, maximal_foci)
-    maximal_foci = sorted(maximal_foci, key = lambda e: e.max_value, reverse=True)
+    maximal_foci = sorted(maximal_foci, key=lambda e: e.max_value, reverse=True)
     breakpoint_bed = odirname / "breakpoint_maxima.bed"
     with breakpoint_bed.open("w") as ofstream:
         for maximal_focus in maximal_foci:
             strand = "+" if maximal_focus.orientation is Orientation.forward else "-"
-            breakpoint_name = f'maximal_focus_window:{maximal_focus.interval[0]}-{maximal_focus.interval[1]}'
-            out_line = [maximal_focus.focus.contig, maximal_focus.focus.start, maximal_focus.focus.end, breakpoint_name, ".", strand]
+            breakpoint_name = f"maximal_focus_window:{maximal_focus.interval[0]}-{maximal_focus.interval[1]}"
+            out_line = [
+                maximal_focus.focus.contig,
+                maximal_focus.focus.start,
+                maximal_focus.focus.end,
+                breakpoint_name,
+                ".",
+                strand,
+            ]
             ofstream.write("\t".join(map(str, out_line)) + "\n")
 
     breakpoint_sequences = extract_breakpoint_sequences(
@@ -204,8 +220,8 @@ def main(
     )
     breakpoint_fasta = odirname / "breakpoint_sequences.fasta"
     with breakpoint_fasta.open("w") as ofstream:
-        for breakpoint_fasta in breakpoint_sequences:
-            ofstream.write(str(breakpoint_fasta))
+        for breakpoint_sequence in breakpoint_sequences:
+            ofstream.write(str(breakpoint_sequence))
 
 
 if __name__ == "__main__":

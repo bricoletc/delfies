@@ -8,7 +8,7 @@ from datasci import Tent, Tents
 from pyfastx import Fasta
 from pysam import AlignedSegment, AlignmentFile
 
-from delfies import ID_DELIM
+from delfies import ID_DELIM, BreakpointType
 from delfies.interval_utils import get_contiguous_ranges, parse_region_string
 from delfies.SAM_utils import (
     find_softclip_at_extremity,
@@ -17,14 +17,32 @@ from delfies.SAM_utils import (
 )
 from delfies.seq_utils import ORIENTATIONS, FastaRecord, Orientation, rev_comp
 
-TELO_FEATURES_PREFIX = "telo_containing_softclips"
-TELO_FEATURES = [TELO_FEATURES_PREFIX + ID_DELIM + o for o in ORIENTATIONS]
+READ_SUPPORT_PREFIX = "num_supporting_reads"
+READ_SUPPORTS = [READ_SUPPORT_PREFIX + ID_DELIM + o for o in ORIENTATIONS]
+
+
+@dataclass
+class BreakpointDetectionParams:
+    bam_fname: str
+    ofname_base: str
+    telomere_seqs: dict
+    telo_array_size: int
+    cov_window_size: int
+    min_mapq: int
+    read_filter_flag: int
+    breakpoint_type: str
 
 
 def setup_tents() -> Dict:
-    tents_headers = ["contig", "start", "end", "read_depth"] + TELO_FEATURES
+    tents_headers = [
+        "contig",
+        "start",
+        "end",
+        "read_depth",
+        "breakpoint_type",
+    ] + READ_SUPPORTS
     tents = Tents(
-        headers=tents_headers, required_headers=tents_headers[:4], unset_value=0
+        headers=tents_headers, required_headers=tents_headers[:5], unset_value=0
     )
     return tents
 
@@ -48,28 +66,39 @@ def record_softclips(
     tents: Tents,
     position_tents: PositionTents,
     positions_to_commit: Set[int],
-    cov_window_size: int,
-    telomere_seqs: Dict,
-    telo_array_size: int,
+    detection_params: BreakpointDetectionParams,
 ) -> None:
-    for telo_feature in TELO_FEATURES:
-        orientation = Orientation[telo_feature.split(ID_DELIM)[1]]
+    for read_support in READ_SUPPORTS:
+        orientation = Orientation[read_support.split(ID_DELIM)[1]]
         softclipped_read = find_softclip_at_extremity(aligned_read, orientation)
         if softclipped_read is None:
             continue
-        if not has_softclipped_telo_array(
-            softclipped_read, orientation, telomere_seqs, telo_array_size
-        ):
+        softclipped_telo_array_found = has_softclipped_telo_array(
+            sofclipped_read,
+            orientation,
+            detection_params.telomere_seqs,
+            detection_params.telo_array_size,
+        )
+        skip_read = (
+            # S2G mode: only include reads with telo-containing soft-clips
+            detection_params.breakpoint_type is BreakpointType.S2G
+            and not softclipped_telo_array_found
+        ) | (
+            # G2S mode: only include reads with no telo-containing soft-clips
+            detection_params.breakpoint_type is BreakpointType.G2S
+            and softclipped_telo_array_found
+        )
+        if skip_read:
             continue
         pos_to_commit = softclipped_read.sc_ref
         ref_name = aligned_read.reference_name
         match_tent_key = f"{ref_name}{ID_DELIM}{pos_to_commit}"
         if match_tent_key in position_tents:
-            position_tents[match_tent_key][telo_feature] += 1
+            position_tents[match_tent_key][read_support] += 1
         else:
             new_tent = tents.new()
-            new_tent.update(contig=ref_name, start=pos_to_commit, end=pos_to_commit + 1)
-            new_tent[telo_feature] += 1
+            new_tent.update(contig=ref_name, start=pos_to_commit, end=pos_to_commit + 1, breakpoint_type=str(detection_params.breakpoint_type))
+            new_tent[read_support] += 1
             position_tents[match_tent_key] = new_tent
         positions_to_commit.update(
             range(pos_to_commit - cov_window_size, pos_to_commit + cov_window_size)
@@ -77,38 +106,33 @@ def record_softclips(
 
 
 def find_breakpoint_foci_row_based(
-    bam_fname: str,
-    ofname_base: str,
-    contig_name: str,
-    telomere_seqs: Dict,
-    telo_array_size: int,
-    cov_window_size: int,
-    min_mapq: int,
-    read_filter_flag: int,
-    seq_region: str = None,
+    detection_params: BreakpointDetectionParams,
+    seq_region: str,
+    parse_seq_region: bool,
 ) -> None:
+    """
+    If `parse_seq_region` is True, `seq_region` is taken to be the name of a contig;
+    else, it is taken to be a `region_string` - for how that's defined, see `delfies/__init__.py`.
+    """
     tents = setup_tents()
     position_tents: PositionTents = {}
     positions_to_commit = set()
-    fetch_args = dict(contig=contig_name)
-    if seq_region is not None:
+    if region_is_region_string:
         contig_name, start, stop = parse_region_string(seq_region)
-        fetch_args.update(contig=contig_name, start=start, stop=stop)
-    bam_fstream = AlignmentFile(bam_fname)
+        fetch_args = dict(contig=contig_name, start=start, stop=stop)
+    else:
+        contig_name = seq_region
+        fetch_args = dict(contig=contig_name)
+    bam_fstream = AlignmentFile(detection_params.bam_fname)
     for aligned_read in bam_fstream.fetch(**fetch_args):
         if aligned_read.mapping_quality < min_mapq:
             continue
         if read_flag_matches(aligned_read, read_filter_flag):
             continue
         record_softclips(
-            aligned_read,
-            tents,
-            position_tents,
-            positions_to_commit,
-            cov_window_size,
-            telomere_seqs,
-            telo_array_size,
+            aligned_read, tents, position_tents, positions_to_commit, detection_params
         )
+    # Record read depth at breakpoint foci
     for start, stop in get_contiguous_ranges(positions_to_commit):
         # Special case: sometimes sotfclipped telomere arrays extend 5' from the first position of a contig/scaffold.
         if start < 0:
@@ -120,8 +144,8 @@ def find_breakpoint_foci_row_based(
             contig=contig_name,
             start=max(start, 0),
             stop=max(stop, 0),
-            flag_filter=read_filter_flag,
-            min_mapping_quality=min_mapq,
+            flag_filter=detection_params.read_filter_flag,
+            min_mapping_quality=detection_params.min_mapq,
             ignore_orphans=False,
             truncate=True,
         )
@@ -141,7 +165,7 @@ def find_breakpoint_foci_row_based(
                     read_depth=read_depth,
                 )
                 tents.add(new_tent)
-    write_tents(ofname_base, tents)
+    write_tents(detection_params.ofname_base, tents)
 
 
 #####################
@@ -158,7 +182,7 @@ class MaximalFocus:
 
     def update(self, query_focus: Tent):
         query_focus_value = int(
-            query_focus[f"{TELO_FEATURES_PREFIX}{ID_DELIM}{self.orientation.name}"]
+            query_focus[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{self.orientation.name}"]
         )
         if query_focus_value > self.max_value:
             self.next_max_value = self.max_value
@@ -189,8 +213,12 @@ class FociWindow:
             self.Min = start
 
     def find_peak_softclip_focus(self) -> MaximalFocus:
-        forward_maximum = MaximalFocus(Orientation.forward, 0, 0, 0, (self.Min, self.Max), None)
-        reverse_maximum = MaximalFocus(Orientation.reverse, 0, 0, 0, (self.Min, self.Max), None)
+        forward_maximum = MaximalFocus(
+            Orientation.forward, 0, 0, 0, (self.Min, self.Max), None
+        )
+        reverse_maximum = MaximalFocus(
+            Orientation.reverse, 0, 0, 0, (self.Min, self.Max), None
+        )
         for focus in self.foci:
             forward_maximum.update(focus)
             reverse_maximum.update(focus)
@@ -240,6 +268,6 @@ def extract_breakpoint_sequences(
         if max_focus.orientation is Orientation.reverse:
             breakpoint_sequence = rev_comp(breakpoint_sequence)
             strand_name = "5prime"
-        breakpoint_name = f"S2G_{strand_name}_{focus.contig} breakpoint_pos:{start} num_{TELO_FEATURES_PREFIX}:{max_focus.max_value} next_best_value_on_same_strand:{max_focus.next_max_value} best_value_on_other_strand:{max_focus.max_value_other_orientation}"
+        breakpoint_name = f"S2G_{strand_name}_{focus.contig} breakpoint_pos:{start} {READ_SUPPORT_PREFIX}:{max_focus.max_value} next_best_value_on_same_strand:{max_focus.next_max_value} best_value_on_other_strand:{max_focus.max_value_other_orientation}"
         result.append(FastaRecord(breakpoint_name, breakpoint_sequence))
     return result

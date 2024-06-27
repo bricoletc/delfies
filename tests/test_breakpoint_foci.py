@@ -3,7 +3,7 @@ import pytest
 from delfies import ID_DELIM
 from delfies.breakpoint_foci import (
     setup_tents,
-    TELO_FEATURES_PREFIX,
+    READ_SUPPORT_PREFIX,
     Orientation,
     MaximalFocus,
     FociWindow,
@@ -16,8 +16,8 @@ def breakpoint_focus():
     tents = setup_tents()
     new_tent = tents.new()
     new_tent.update(contig="test_contig", start=2, end=200)
-    new_tent[f"{TELO_FEATURES_PREFIX}{ID_DELIM}{Orientation.forward.name}"] = 15
-    new_tent[f"{TELO_FEATURES_PREFIX}{ID_DELIM}{Orientation.reverse.name}"] = 20
+    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"] = 15
+    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.reverse.name}"] = 20
     return new_tent
 
 
@@ -39,8 +39,8 @@ def focus_window():
     tents = setup_tents()
     new_tent = tents.new()
     new_tent.update(start=205, end=210)
-    new_tent[f"{TELO_FEATURES_PREFIX}{ID_DELIM}{Orientation.forward.name}"] = 2
-    new_tent[f"{TELO_FEATURES_PREFIX}{ID_DELIM}{Orientation.reverse.name}"] = 200
+    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"] = 2
+    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.reverse.name}"] = 200
     return FociWindow(new_tent)
 
 
@@ -72,7 +72,7 @@ class TestMaximalFocus:
         assert (
             maximal_focus.max_value
             == breakpoint_focus[
-                f"{TELO_FEATURES_PREFIX}{ID_DELIM}{Orientation.forward.name}"
+                f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"
             ]
         )
         assert maximal_focus.next_max_value == prev_max_value
@@ -143,7 +143,7 @@ class TestFociWindow:
 
     def test_find_peak_softclip_focus_forward_max(self, breakpoint_focus, focus_window):
         breakpoint_focus[
-            f"{TELO_FEATURES_PREFIX}{ID_DELIM}{Orientation.forward.name}"
+            f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"
         ] = 400
         focus_window.add(breakpoint_focus)
         max_focus = focus_window.find_peak_softclip_focus()
