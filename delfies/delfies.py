@@ -9,9 +9,10 @@ from datasci import Tents
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
-from delfies import REGION_CLICK_HELP, __version__, all_breakpoint_types
+from delfies import REGION_CLICK_HELP, __version__, BreakpointType, all_breakpoint_types
 from delfies.breakpoint_foci import (
     cluster_breakpoint_foci,
+    MaximalFoci,
     extract_breakpoint_sequences,
     find_breakpoint_foci_row_based,
     BreakpointDetectionParams,
@@ -53,6 +54,42 @@ click.rich_click.OPTION_GROUPS = {
         },
     ]
 }
+
+
+def run_breakpoint_detection(detection_params: BreakpointDetectionParams, seq_regions, threads) -> MaximalFoci:
+    foci_ofprefix=f"{detection_params.ofname_base}{ID_DELIM}{detection_params.breakpoint_type}"
+    detection_params.ofname_base = foci_ofprefix
+    with mp.Pool(processes=threads) as pool:
+        pool.starmap(
+            find_breakpoint_foci_row_based,
+            zip(
+                it.repeat(detection_params),
+                seq_regions,
+            ),
+        )
+    all_files = glob(f"{foci_ofprefix}_*.tsv")
+    foci_tsv = f"{foci_ofprefix}.tsv"
+    with open(foci_tsv, "w") as ofstream:
+        for i, fname in enumerate(all_files):
+            with open(fname) as infile:
+                if i > 0:
+                    next(infile)  # Skips header
+                for line in infile:
+                    if line != "\n":
+                        ofstream.write(line)
+            os.remove(fname)
+
+    all_foci = Tents.from_tsv(foci_tsv)
+    clustered_foci = cluster_breakpoint_foci(all_foci)
+    maximal_foci = map(
+        lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
+    )
+    maximal_foci = filter(lambda m: m.max_value >= min_supporting_reads, maximal_foci)
+    maximal_foci = sorted(maximal_foci, key=lambda e: e.max_value, reverse=True)
+    for m_f in maximal_foci:
+        m_f.breakpoint_type = detection_params.breakpoint_type
+    return maximal_foci
+
 
 
 @click.command()
@@ -136,6 +173,7 @@ def main(
     read_filter_flag,
     min_supporting_reads,
     seq_window_size,
+    breakpoint_type,
     threads,
 ):
     """
@@ -173,44 +211,26 @@ def main(
         read_filter_flag=read_filter_flag,
     )
 
-    with mp.Pool(processes=threads) as pool:
-        pool.starmap(
-            find_breakpoint_foci_row_based,
-            zip(
-                it.repeat(detection_params),
-                seq_regions,
-            ),
-        )
-    all_files = glob(f"{ofname_base}_*.tsv")
-    foci_tsv = f"{ofname_base}.tsv"
-    with open(foci_tsv, "w") as ofstream:
-        for i, fname in enumerate(all_files):
-            with open(fname) as infile:
-                if i > 0:
-                    next(infile)  # Skips header
-                for line in infile:
-                    if line != "\n":
-                        ofstream.write(line)
-            os.remove(fname)
+    try:
+        breakpoint_types_to_analyse = BreakpointType(breakpoint_type)
+    except ValueError:
+        breakpoint_types_to_analyse = all_breakpoint_types
 
-    all_foci = Tents.from_tsv(foci_tsv)
-    clustered_foci = cluster_breakpoint_foci(all_foci)
-    maximal_foci = map(
-        lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
-    )
-    maximal_foci = filter(lambda m: m.max_value >= min_supporting_reads, maximal_foci)
-    maximal_foci = sorted(maximal_foci, key=lambda e: e.max_value, reverse=True)
-    breakpoint_bed = odirname / "breakpoint_maxima.bed"
+    for breakpoint_type_to_analyse in breakpoint_types_to_analyse:
+        detection_params.breakpoint_type = breakpoint_type_to_analyse
+        maximal_foci = run_breakpoint_detection(detection_params, seq_regions, threads)
+
+    breakpoint_bed = odirname / "breakpoint_locations.bed"
     with breakpoint_bed.open("w") as ofstream:
         for maximal_focus in maximal_foci:
             strand = "+" if maximal_focus.orientation is Orientation.forward else "-"
-            breakpoint_name = f"maximal_focus_window:{maximal_focus.interval[0]}-{maximal_focus.interval[1]}"
+            breakpoint_name = f"Type:{maximal_focus.breakpoint_type};breakpoint_window:{maximal_focus.interval[0]}-{maximal_focus.interval[1]}"
             out_line = [
                 maximal_focus.focus.contig,
                 maximal_focus.focus.start,
                 maximal_focus.focus.end,
                 breakpoint_name,
-                ".",
+                maximal_focus.max_value,
                 strand,
             ]
             ofstream.write("\t".join(map(str, out_line)) + "\n")

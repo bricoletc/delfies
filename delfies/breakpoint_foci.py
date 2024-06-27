@@ -24,13 +24,13 @@ READ_SUPPORTS = [READ_SUPPORT_PREFIX + ID_DELIM + o for o in ORIENTATIONS]
 @dataclass
 class BreakpointDetectionParams:
     bam_fname: str
-    ofname_base: str
     telomere_seqs: dict
     telo_array_size: int
     cov_window_size: int
     min_mapq: int
     read_filter_flag: int
-    breakpoint_type: str
+    breakpoint_type: str = ""
+    ofname_base: str = None
 
 
 def setup_tents() -> Dict:
@@ -179,6 +179,7 @@ class MaximalFocus:
     max_value_other_orientation: int
     interval: Tuple[int, int]
     focus: Tent
+    breakpoint_type: str = ""
 
     def update(self, query_focus: Tent):
         query_focus_value = int(
@@ -249,8 +250,10 @@ def cluster_breakpoint_foci(foci: Tents, tolerance: int = 10) -> List[FociWindow
     return list(it_chain(*result.values()))
 
 
+MaximalFoci = List[MaximalFocus]
+
 def extract_breakpoint_sequences(
-    maximal_foci: List[MaximalFocus], genome_fasta: str, seq_window_size: int
+    maximal_foci: MaximalFoci, genome_fasta: str, seq_window_size: int
 ) -> List[FastaRecord]:
     genome = Fasta(genome_fasta)
     result = list()
