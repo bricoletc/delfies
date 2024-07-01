@@ -37,8 +37,8 @@ delfies --help
 
 First, we provide two basic definitions:
 
-- Breakpoints can be of two `breakpoint_type`s:
-  - S2G: telomere-containing softclipped-reads align to a location in the genome. 
+- Breakpoints can be of two **breakpoint types**:
+  - S2G: telomere-containing softclipped-reads align to a location in the genome
   - G2S: non-telomere-containing softclipped-reads align to a location in the genome 
     that contains telomeres
   
@@ -49,8 +49,8 @@ First, we provide two basic definitions:
   the reduced genome (with telomeres), and breakpoint-supporting reads come from cells 
   with an unbroken genome
 
-- Breakpoint strand. The strand is defined as '+', or also called '3prime', if 
-  the softclips on reads occur 3' of the assembled genome, and '-' or '3prime', if 
+- **Breakpoint strand**. The strand is defined as '+', or also called '3prime', if 
+  the softclips on reads occur 3' of the assembled genome, and '-' or '5prime', if 
   they occur 5' of the assembled genome. For both `S2G` and `G2S` breakpoints, '+' suggests the 
   eliminated genome occurs 3' of the identified breakpoint, and vice-versa.
 
@@ -60,12 +60,13 @@ The main outputs of `delfies` are:
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
    elimination breakpoints. 
    - The location itself is provided as an interval of size one, and corresponds to the 
-     first base past the putative breakpoint. 
+     location of the first eliminated base past the putative breakpoint. 
    - The name column (column 4) records the breakpoint type, as defined above. 
      It also stores larger window, in the format `maximal_focus_window: <start>-<end>`,
-     containing several adjacent putative breakpoint positions that have been merged together.
+     containing multiple putative breakpoint positions that have been merged together, due 
+     to being adjacent.
    - The score column (column 5) stores the number of sequencing reads that 
-     support the sharply-defined identified breakpoint (=one-base interval).
+     support the 'sharp' identified breakpoint (=one-base interval).
     - The strand column (column 6) specifies the likely direction of eliminated DNA, 
       as defined above.
       
@@ -83,15 +84,14 @@ The main outputs of `delfies` are:
       and the number of reads supporting the breakpoint ('num_telo_containing_softclips')
 
 **Importantly, visualise the results yourself.** 
-E.g., by loading the input fasta and BAM and output `breakpoint_maxima.bed` in [IGV](https://github.com/igvteam/igv).
+E.g., by loading the input fasta and BAM and output `breakpoint_locations.bed` in [IGV](https://github.com/igvteam/igv).
 
 # What's next
 
 ## Tool constraints
 
 * Currently `delfies` looks for telomeric units repeated at least `--telo_array_size` times 
-  at the beginning of the soft-clipped region of a read, with no mismatches in the telomeric 
-  repeat unit.
+  with no mismatches in the telomeric repeat unit.
 
 ## Detection mode 
 * G2S mode: add germline sequence sequence reconstruction at breakpoints
