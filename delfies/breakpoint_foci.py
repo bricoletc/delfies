@@ -61,11 +61,17 @@ PositionTents = Dict[str, Tent]
 ####################
 ## Foci detection ##
 ####################
+def focus_has_enough_support(focus_tent, min_support: int) -> bool:
+    result = False
+    for read_support in READ_SUPPORTS:
+        result |= int(focus_tent[read_support]) >= min_support
+    return result
+
+
 def record_softclips(
     aligned_read: AlignedSegment,
     tents: Tents,
     position_tents: PositionTents,
-    positions_to_commit: Set[int],
     detection_params: BreakpointDetectionParams,
     seq_region: Interval,
 ) -> None:
@@ -113,9 +119,6 @@ def record_softclips(
             )
             new_tent[read_support] += 1
             position_tents[match_tent_key] = new_tent
-        # I commit a few positions before and after `pos_to_commit` so that 
-        # users can assess changes in coverage in the breakpoint foci output tsv
-        positions_to_commit.update(range(pos_to_commit - 2, pos_to_commit + 3))
 
 
 def find_breakpoint_foci_row_based(
@@ -142,18 +145,29 @@ def find_breakpoint_foci_row_based(
             aligned_read,
             tents,
             position_tents,
-            positions_to_commit,
             detection_params,
             seq_region,
         )
+    # Filter breakpoint foci based on support
+    filtered_position_tents = {}
+    for match_key, focus_tent in position_tents.items():
+        if focus_has_enough_support(focus_tent, detection_params.min_supporting_reads):
+            filtered_position_tents[match_key] = focus_tent
+            # I commit a few positions before and after `pos_to_commit` so that 
+            # users can assess changes in coverage in the breakpoint foci output tsv
+            committed_position = focus_tent["start"]
+            positions_to_commit.update(range(committed_position - 2, committed_position + 3))
+    del position_tents
+
+
     # Record read depth at breakpoint foci
     for start, end in get_contiguous_ranges(positions_to_commit):
         # Special case: sometimes sotfclipped telomere arrays extend 5' from the first position of a contig/scaffold.
         if start < 0:
             negative_tent_key = f"{contig_name}{ID_DELIM}-1"
-            if negative_tent_key in position_tents:
-                tents.add(position_tents[negative_tent_key])
-                position_tents.pop(negative_tent_key)
+            if negative_tent_key in filtered_position_tents:
+                tents.add(filtered_position_tents[negative_tent_key])
+                filtered_position_tents.pop(negative_tent_key)
         # +1 for `end` because `end` needs to be exclusive in pysam `pileup`
         pileup_args = dict(
             contig=contig_name,
@@ -168,9 +182,9 @@ def find_breakpoint_foci_row_based(
             read_depth = pileup_column.nsegments
             ref_pos = pileup_column.reference_pos
             tent_key = f"{contig_name}{ID_DELIM}{ref_pos}"
-            if tent_key in position_tents:
-                position_tents[tent_key]["read_depth"] = read_depth
-                tents.add(position_tents[tent_key])
+            if tent_key in filtered_position_tents:
+                filtered_position_tents[tent_key]["read_depth"] = read_depth
+                tents.add(filtered_position_tents[tent_key])
             else:
                 new_tent = tents.new()
                 new_tent.update(
@@ -258,10 +272,7 @@ def cluster_breakpoint_foci(foci: Tents, tolerance: int) -> List[FociWindow]:
     """
     result: Dict[str, List[FociWindow]] = defaultdict(list)
     for focus in foci:
-        focus_has_softclips = False
-        for read_support in READ_SUPPORTS:
-            focus_has_softclips |= int(focus[read_support]) != 0
-        if not focus_has_softclips:
+        if not focus_has_enough_support(focus, 1):
             continue
         contig_windows = result[focus.contig]
         found_window = False

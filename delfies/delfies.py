@@ -126,9 +126,6 @@ def run_breakpoint_detection(
     maximal_foci = map(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
-    maximal_foci = filter(
-        lambda m: m.max_value >= detection_params.min_supporting_reads, maximal_foci
-    )
     maximal_foci = sorted(maximal_foci, key=lambda e: e.max_value, reverse=True)
     for m_f in maximal_foci:
         m_f.breakpoint_type = detection_params.breakpoint_type
