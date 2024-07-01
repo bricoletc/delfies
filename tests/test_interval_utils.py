@@ -18,6 +18,11 @@ class TestRegionStrings:
 
 
 class TestContiguousRanges:
+    def test_get_repeated_range_for_single_input_num(self):
+        input_nums = set([1])
+        expected = [(1, 1)]
+        assert get_contiguous_ranges(input_nums) == expected
+
     def test_contiguous_ranges_from_contiguous_inputs(self):
         input_nums = set([1, 2, 3, 4, 3, 2, 1])
         expected = [(1, 4)]

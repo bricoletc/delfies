@@ -55,7 +55,7 @@ click.rich_click.OPTION_GROUPS = {
                 "--breakpoint_type",
                 "--telomere_forward_seq",
                 "--telo_array_size",
-                "--cov_window_size",
+                "--clustering_threshold",
                 "--min_mapq",
                 "--read_filter_flag",
             ],
@@ -122,7 +122,7 @@ def run_breakpoint_detection(
             os.remove(fname)
 
     all_foci = Tents.from_tsv(foci_tsv)
-    clustered_foci = cluster_breakpoint_foci(all_foci)
+    clustered_foci = cluster_breakpoint_foci(all_foci, tolerance=detection_params.clustering_threshold)
     maximal_foci = map(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
@@ -189,10 +189,11 @@ def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
     show_default=True,
 )
 @click.option(
-    "--cov_window_size",
+    "--clustering_threshold",
     type=int,
     default=5,
-    help="Number of positions either side of a soft-clipped telomere-containing read to record. MUST be >=1!! [This constraint could be removed later.]",
+    help=f"Any breakpoints within this value (in bp) of each other will be merged. "
+    f"A larger threshold allows for more imprecise breakpoint locations",
     show_default=True,
 )
 @click.option(
@@ -226,8 +227,9 @@ def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
 @click.option(
     "--breakpoint_type",
     "-b",
-    type=click.Choice(list(map(str, all_breakpoint_types))),
-    help="The type of breakpoint to look for. If not provided, will look for all types of breakpoints",
+    type=click.Choice(list(map(str, all_breakpoint_types)) + ["all"]),
+    help="The type of breakpoint to look for. By default, looks for all types of breakpoints",
+    default="all",
 )
 @click.option("--threads", type=int, default=1)
 @click.help_option("--help", "-h")
@@ -240,7 +242,7 @@ def main(
     bed,
     telomere_forward_seq,
     telo_array_size,
-    cov_window_size,
+    clustering_threshold,
     min_mapq,
     read_filter_flag,
     min_supporting_reads,
@@ -259,13 +261,13 @@ def main(
     bam_fstream = AlignmentFile(bam_fname)
 
     seq_regions: Intervals = list()
-    if seq_region is not None:
-        seq_regions.append(Interval.from_region_string(seq_region))
-        threads = 1
-    elif bed is not None:
+    if bed is not None:
         intervals = BedTool(bed)
         for interval in intervals:
             seq_regions.append(Interval.from_pybedtools_interval(interval))
+    elif seq_region is not None:
+        seq_regions.append(Interval.from_region_string(seq_region))
+        threads = 1
     else:
         # Analyse the entire genome
         for contig in bam_fstream.references:
@@ -276,11 +278,12 @@ def main(
         Orientation.reverse: rev_comp(telomere_forward_seq),
     }
 
+    clustering_threshold = max(clustering_threshold, 0)
     detection_params = BreakpointDetectionParams(
         bam_fname=bam_fname,
         telomere_seqs=telomere_seqs,
         telo_array_size=telo_array_size,
-        cov_window_size=cov_window_size,
+        clustering_threshold=clustering_threshold,
         min_mapq=min_mapq,
         read_filter_flag=read_filter_flag,
         min_supporting_reads=min_supporting_reads,

@@ -25,7 +25,7 @@ class BreakpointDetectionParams:
     bam_fname: str
     telomere_seqs: dict
     telo_array_size: int
-    cov_window_size: int
+    clustering_threshold: int
     min_mapq: int
     read_filter_flag: int
     min_supporting_reads: int
@@ -113,12 +113,9 @@ def record_softclips(
             )
             new_tent[read_support] += 1
             position_tents[match_tent_key] = new_tent
-        positions_to_commit.update(
-            range(
-                pos_to_commit - detection_params.cov_window_size,
-                pos_to_commit + detection_params.cov_window_size,
-            )
-        )
+        # I commit a few positions before and after `pos_to_commit` so that 
+        # users can assess changes in coverage in the breakpoint foci output tsv
+        positions_to_commit.update(range(pos_to_commit - 2, pos_to_commit + 3))
 
 
 def find_breakpoint_foci_row_based(
@@ -150,17 +147,18 @@ def find_breakpoint_foci_row_based(
             seq_region,
         )
     # Record read depth at breakpoint foci
-    for start, stop in get_contiguous_ranges(positions_to_commit):
+    for start, end in get_contiguous_ranges(positions_to_commit):
         # Special case: sometimes sotfclipped telomere arrays extend 5' from the first position of a contig/scaffold.
         if start < 0:
             negative_tent_key = f"{contig_name}{ID_DELIM}-1"
             if negative_tent_key in position_tents:
                 tents.add(position_tents[negative_tent_key])
                 position_tents.pop(negative_tent_key)
+        # +1 for `end` because `end` needs to be exclusive in pysam `pileup`
         pileup_args = dict(
             contig=contig_name,
             start=max(start, 0),
-            stop=max(stop, 0),
+            end=max(end + 1, 0),
             flag_filter=detection_params.read_filter_flag,
             min_mapping_quality=detection_params.min_mapq,
             ignore_orphans=False,
@@ -252,9 +250,19 @@ class FociWindow:
         return f"[{self.Min},{self.Max}]"
 
 
-def cluster_breakpoint_foci(foci: Tents, tolerance: int = 10) -> List[FociWindow]:
+def cluster_breakpoint_foci(foci: Tents, tolerance: int) -> List[FociWindow]:
+    """
+    Developer note:
+        foci without any softclipped-reads are ignored for the purpose of clustering, 
+        as they are only present in the output tsv to assess coverage changes near breakpoints.
+    """
     result: Dict[str, List[FociWindow]] = defaultdict(list)
     for focus in foci:
+        focus_has_softclips = False
+        for read_support in READ_SUPPORTS:
+            focus_has_softclips |= int(focus[read_support]) != 0
+        if not focus_has_softclips:
+            continue
         contig_windows = result[focus.contig]
         found_window = False
         for elem in contig_windows:
