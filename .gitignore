@@ -6,6 +6,8 @@ TODOs.md
 
 # Dev
 tmp_work
+dist
+
 ## Test coverage
 .coverage
 htmlcov/

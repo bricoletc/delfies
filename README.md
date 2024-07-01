@@ -26,25 +26,52 @@ delfies --help
 
 ## Outputs
 
+### Terminology: breakpoint types and strandedness
+
+First, we provide two basic definitions:
+
+- Breakpoints can be of two `breakpoint_type`s:
+  - S2G: telomere-containing softclipped-reads align to a location in the genome. 
+  - G2S: non-telomere-containing softclipped-reads align to a location in the genome 
+    that contains telomeres
+  
+  These two types both describe elimination breakpoints at which telomeres have been 
+  added to the retained fragments. In the case of `S2G` breakpoints, the assembled 
+  genome is the unbroken genome, and breakpoint-supporting reads come from cells 
+  with a broken genome. In the case of `G2S` breakpoints, the assembled genome is 
+  the reduced genome (with telomeres), and breakpoint-supporting reads come from cells 
+  with an unbroken genome
+
+- Breakpoint strand. The strand is defined as '+', or also called '3prime', if 
+  the softclips on reads occur 3' of the assembled genome, and '-' or '3prime', if 
+  they occur 5' of the assembled genome. For both `S2G` and `G2S` breakpoints, '+' suggests the 
+  eliminated genome occurs 3' of the identified breakpoint, and vice-versa.
+
+### Files 
 The main outputs of `delfies` are:
 
-- `breakpoint_maxima.bed`: a BED-formatted file containing the location of identified 
+- `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
    elimination breakpoints. 
-   - The location itself is provided as an interval of size one; however, 
-     all putative breakpoint positions are merged into a larger interval 
-     that is provided in the name column (column 4), as `maximal_focus_window: <start>-<end>`.
-    - The strand column (column 6) is a '+' if the telomere-containing reads (mainly) occur 
-      3' of the identified breakpoint, and '-' if they occur 5' of the identified breakpoint. 
-      Thus a '+' suggests the eliminated DNA is 3' of the breakpoint, and vice-versa.
+   - The location itself is provided as an interval of size one, and corresponds to the 
+     first base past the putative breakpoint. 
+   - The name column (column 4) records the breakpoint type, as defined above. 
+     It also stores larger window, in the format `maximal_focus_window: <start>-<end>`,
+     containing several adjacent putative breakpoint positions that have been merged together.
+   - The score column (column 5) stores the number of sequencing reads that 
+     support the sharply-defined identified breakpoint (=one-base interval).
+    - The strand column (column 6) specifies the likely direction of eliminated DNA, 
+      as defined above.
+      
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
    of identified elimination breakpoints. The header field contains:
-   - A sequence ID as `<detection_mode>_<breakpoint_type>_<chrom>`
+   - A sequence ID as `<breakpoint_type>_<breakpoint_direction>_<chrom>`
 
-     `detection_mode` is currently always S2G, so ignore this (TODO: add G2S)
+     `breakpoint_type`: 'S2G' or 'G2S', as defined above
 
-     `breakpoint_type` is '3prime' for a '+' breakpoint, and '5prime' for a '-' breakpoint (see BED file above)
+     `breakpoint_type`: '5prime' or '3prime', as defined above
 
-     `chrom` is the contig/scaffold/chromosome name
+     `chrom`: the contig/scaffold/chromosome name
+
     - Some additional information is provided, e.g. the position of the breakpoint 
       and the number of reads supporting the breakpoint ('num_telo_containing_softclips')
 
@@ -60,7 +87,8 @@ E.g., by loading the input fasta and BAM and output `breakpoint_maxima.bed` in [
   repeat unit.
 
 ## Detection mode 
-* Add 'G2S' detection mode
+* G2S mode: add germline sequence sequence reconstruction at breakpoints
+* S2G mode: remove breakpoints that occur at locations of the genome containing telomeres?
 
 ## Benchmark
 
