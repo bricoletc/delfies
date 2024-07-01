@@ -7,6 +7,13 @@ Delfies is a tool for the detection of DNA Elimination breakpoints
 ## Installation
 Using `pip` (or equivalent - poetry, etc.): 
 ```sh
+# Download and install a specific release
+DELFIES_VERSION=0.1.0
+wget "https://github.com/bricoletc/delfies/archive/refs/tags/${DELFIES_VERSION}.tar.gz"
+tar -xf "delfies-${DELFIES_VERSION}.tar.gz
+pip install ./delfies-"${DELFIES_VERSION}"/
+
+# OR clone and install tip of main
 git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
 ```
