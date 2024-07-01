@@ -30,12 +30,18 @@ class Interval:
 
     @classmethod
     def from_pybedtools_interval(cls, pybedtools_interval) -> "Interval":
-        return Interval(pybedtools_interval.chrom, pybedtools_interval.start, pybedtools_interval.end)
+        return Interval(
+            pybedtools_interval.chrom,
+            pybedtools_interval.start,
+            pybedtools_interval.end,
+        )
 
     def has_coordinates(self) -> bool:
         return self.start is not None and self.end is not None
 
+
 Intervals = List[Interval]
+
 
 def parse_region_string(region_string: str) -> Tuple[str, int, int]:
     contig, regs = region_string.split(REGION_DELIM1)

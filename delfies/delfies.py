@@ -99,7 +99,7 @@ def extract_breakpoint_sequences(
 
 
 def run_breakpoint_detection(
-        detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
+    detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
 ) -> MaximalFoci:
     with mp.Pool(processes=threads) as pool:
         pool.starmap(
@@ -309,9 +309,7 @@ def main(
                 seq_regions,
                 interval_window_size=20,
             )
-        maximal_foci += run_breakpoint_detection(
-            detection_params, seq_regions, threads
-        )
+        maximal_foci += run_breakpoint_detection(detection_params, seq_regions, threads)
 
     write_breakpoint_bed(maximal_foci, odirname)
     write_breakpoint_sequences(genome_fname, maximal_foci, odirname, seq_window_size)

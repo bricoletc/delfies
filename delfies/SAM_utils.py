@@ -96,5 +96,5 @@ def has_softclipped_telo_array(
         subseq = read.sequence[read.sc_query : end]
     else:
         start = max(read.sc_query + 1 - subseq_clip_end, 0)
-        subseq = read.sequence[start: read.sc_query + 1]
+        subseq = read.sequence[start : read.sc_query + 1]
     return re.search(telo_array, subseq) is not None

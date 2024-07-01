@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List
 import re
 
 from pyfastx import Fasta
@@ -51,11 +50,16 @@ def find_all_occurrences_in_genome(
     interval_window_size: int,
 ) -> Intervals:
     result = list()
-    patterns = {Orientation.forward: re.compile(query_sequence), Orientation.reverse: re.compile(rev_comp(query_sequence))}
+    patterns = {
+        Orientation.forward: re.compile(query_sequence),
+        Orientation.reverse: re.compile(rev_comp(query_sequence)),
+    }
     for seq_region in seq_regions:
         if seq_region.has_coordinates():
             relative_to_absolute = seq_region.start
-            target_seq = genome_fasta[seq_region.name][seq_region.start:seq_region.end]
+            target_seq = genome_fasta[seq_region.name][
+                seq_region.start : seq_region.end
+            ]
         else:
             relative_to_absolute = 0
             target_seq = genome_fasta[seq_region.name]

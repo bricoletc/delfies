@@ -23,4 +23,5 @@ class BreakpointType(Enum):
     def __str__(self):
         return f"{self.name}"
 
+
 all_breakpoint_types = list(BreakpointType)

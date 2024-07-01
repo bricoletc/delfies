@@ -84,6 +84,7 @@ class TestSoftclipDetection:
             sc_ref=pysam_read_with_3prime_softclips.reference_start
             + len(DEFAULT_ALIGNED_SEQ),
             sc_query=len(DEFAULT_ALIGNED_SEQ),
+            sc_length=len(DEFAULT_ADDED_SOFTCLIPPED_SEQ)
         )
         assert (
             find_softclip_at_extremity(
@@ -101,6 +102,7 @@ class TestSoftclipDetection:
             name=pysam_read_with_5prime_softclips.query_name,
             sc_ref=pysam_read_with_5prime_softclips.reference_start - 1,
             sc_query=len(DEFAULT_ADDED_SOFTCLIPPED_SEQ) - 1,
+            sc_length=len(DEFAULT_ADDED_SOFTCLIPPED_SEQ)
         )
         assert (
             find_softclip_at_extremity(
@@ -117,6 +119,7 @@ def softclipped_read():
         name="test_softclipped_read",
         sc_ref=200,
         sc_query=len(DEFAULT_ALIGNED_SEQ),
+        sc_length=0
     )
 
 
