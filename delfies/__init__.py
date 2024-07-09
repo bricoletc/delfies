@@ -1,5 +1,5 @@
-from importlib import metadata
 from enum import Enum
+from importlib import metadata
 
 __version__ = metadata.version("delfies")
 

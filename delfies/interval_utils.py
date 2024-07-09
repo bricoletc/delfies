@@ -1,7 +1,7 @@
+from dataclasses import dataclass
 from itertools import groupby
 from operator import itemgetter
 from typing import List, Set, Tuple
-from dataclasses import dataclass
 
 from delfies import REGION_DELIM1, REGION_DELIM2
 

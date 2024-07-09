@@ -8,7 +8,7 @@ from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
 
 from delfies import ID_DELIM, BreakpointType
-from delfies.interval_utils import get_contiguous_ranges, Interval
+from delfies.interval_utils import Interval, get_contiguous_ranges
 from delfies.SAM_utils import (
     find_softclip_at_extremity,
     has_softclipped_telo_array,
@@ -153,12 +153,13 @@ def find_breakpoint_foci_row_based(
     for match_key, focus_tent in position_tents.items():
         if focus_has_enough_support(focus_tent, detection_params.min_supporting_reads):
             filtered_position_tents[match_key] = focus_tent
-            # I commit a few positions before and after `pos_to_commit` so that 
+            # I commit a few positions before and after `pos_to_commit` so that
             # users can assess changes in coverage in the breakpoint foci output tsv
             committed_position = focus_tent["start"]
-            positions_to_commit.update(range(committed_position - 2, committed_position + 3))
+            positions_to_commit.update(
+                range(committed_position - 2, committed_position + 3)
+            )
     del position_tents
-
 
     # Record read depth at breakpoint foci
     for start, end in get_contiguous_ranges(positions_to_commit):
@@ -267,7 +268,7 @@ class FociWindow:
 def cluster_breakpoint_foci(foci: Tents, tolerance: int) -> List[FociWindow]:
     """
     Developer note:
-        foci without any softclipped-reads are ignored for the purpose of clustering, 
+        foci without any softclipped-reads are ignored for the purpose of clustering,
         as they are only present in the output tsv to assess coverage changes near breakpoints.
     """
     result: Dict[str, List[FociWindow]] = defaultdict(list)

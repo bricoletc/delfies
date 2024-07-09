@@ -8,23 +8,24 @@ from typing import List
 import rich_click as click
 from datasci import Tents
 from pybedtools import BedTool
-from pysam import AlignmentFile
 from pyfastx import Fasta
+from pysam import AlignmentFile
 
 from delfies import (
-    REGION_CLICK_HELP,
-    __version__,
     ID_DELIM,
+    REGION_CLICK_HELP,
     BreakpointType,
+    __version__,
     all_breakpoint_types,
 )
 from delfies.breakpoint_foci import (
-    cluster_breakpoint_foci,
-    MaximalFocus,
     READ_SUPPORT_PREFIX,
-    find_breakpoint_foci_row_based,
     BreakpointDetectionParams,
+    MaximalFocus,
+    cluster_breakpoint_foci,
+    find_breakpoint_foci_row_based,
 )
+from delfies.interval_utils import Interval, Intervals
 from delfies.SAM_utils import (
     DEFAULT_MIN_MAPQ,
     DEFAULT_READ_FILTER_FLAG,
@@ -32,12 +33,11 @@ from delfies.SAM_utils import (
 )
 from delfies.seq_utils import (
     TELOMERE_SEQS,
-    Orientation,
-    rev_comp,
     FastaRecord,
+    Orientation,
     find_all_occurrences_in_genome,
+    rev_comp,
 )
-from delfies.interval_utils import Interval, Intervals
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -122,7 +122,9 @@ def run_breakpoint_detection(
             os.remove(fname)
 
     all_foci = Tents.from_tsv(foci_tsv)
-    clustered_foci = cluster_breakpoint_foci(all_foci, tolerance=detection_params.clustering_threshold)
+    clustered_foci = cluster_breakpoint_foci(
+        all_foci, tolerance=detection_params.clustering_threshold
+    )
     maximal_foci = map(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
