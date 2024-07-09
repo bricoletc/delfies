@@ -2,12 +2,12 @@ import pytest
 
 from delfies import ID_DELIM
 from delfies.breakpoint_foci import (
-    setup_tents,
-    READ_SUPPORT_PREFIX,
-    Orientation,
-    MaximalFocus,
+    READ_SUPPORTS,
     FociWindow,
+    MaximalFocus,
+    Orientation,
     cluster_breakpoint_foci,
+    setup_tents,
 )
 
 
@@ -16,8 +16,8 @@ def breakpoint_focus():
     tents = setup_tents()
     new_tent = tents.new()
     new_tent.update(contig="test_contig", start=2, end=200)
-    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"] = 15
-    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.reverse.name}"] = 20
+    new_tent[f"{READ_SUPPORTS[0]}"] = 15
+    new_tent[f"{READ_SUPPORTS[1]}"] = 20
     return new_tent
 
 
@@ -27,9 +27,11 @@ def multiple_breakpoint_foci(breakpoint_focus):
     tents.add(breakpoint_focus)
     new_tent = tents.new()
     new_tent.update(contig="test_contig", start=0, end=202)
+    new_tent[f"{READ_SUPPORTS[0]}"] = 15
     tents.add(new_tent)
     new_tent = tents.new()
     new_tent.update(contig="test_contig", start=2000, end=2005)
+    new_tent[f"{READ_SUPPORTS[0]}"] = 15
     tents.add(new_tent)
     return tents
 
@@ -39,8 +41,8 @@ def focus_window():
     tents = setup_tents()
     new_tent = tents.new()
     new_tent.update(start=205, end=210)
-    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"] = 2
-    new_tent[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.reverse.name}"] = 200
+    new_tent[f"{READ_SUPPORTS[0]}"] = 2
+    new_tent[f"{READ_SUPPORTS[1]}"] = 200
     return FociWindow(new_tent)
 
 
@@ -69,12 +71,7 @@ class TestMaximalFocus:
         prev_max_value = maximal_focus.max_value
         maximal_focus.update(breakpoint_focus)
         assert maximal_focus.focus == breakpoint_focus
-        assert (
-            maximal_focus.max_value
-            == breakpoint_focus[
-                f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"
-            ]
-        )
+        assert maximal_focus.max_value == breakpoint_focus[f"{READ_SUPPORTS[0]}"]
         assert maximal_focus.next_max_value == prev_max_value
 
 
@@ -142,9 +139,7 @@ class TestFociWindow:
         )
 
     def test_find_peak_softclip_focus_forward_max(self, breakpoint_focus, focus_window):
-        breakpoint_focus[
-            f"{READ_SUPPORT_PREFIX}{ID_DELIM}{Orientation.forward.name}"
-        ] = 400
+        breakpoint_focus[f"{READ_SUPPORTS[0]}"] = 400
         focus_window.add(breakpoint_focus)
         max_focus = focus_window.find_peak_softclip_focus()
         assert max_focus == MaximalFocus(
@@ -158,6 +153,15 @@ class TestFociWindow:
 
 
 class TestBreakpointClustering:
+    def test_breakpoint_foci_with_no_read_support_are_filtered_out(
+        self, multiple_breakpoint_foci
+    ):
+        for focus in multiple_breakpoint_foci:
+            focus[READ_SUPPORTS[0]] = 0
+            focus[READ_SUPPORTS[1]] = 0
+        result = cluster_breakpoint_foci(multiple_breakpoint_foci, tolerance=10)
+        assert len(result) == 0
+
     def test_cluster_breakpoint_foci(self, multiple_breakpoint_foci):
         result = cluster_breakpoint_foci(multiple_breakpoint_foci, tolerance=10)
         assert len(result) == 2

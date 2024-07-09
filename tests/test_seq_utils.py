@@ -1,4 +1,4 @@
-from delfies.seq_utils import rev_comp, cyclic_shifts
+from delfies.seq_utils import cyclic_shifts, rev_comp
 
 
 def test_rev_comp():
@@ -10,12 +10,12 @@ def test_rev_comp():
 def test_cyclic_shifts():
     str_to_shift = "TTAGGC"
     expected_shifts = [
-            "TTAGGC",
-            "TAGGCT",
-            "AGGCTT",
-            "GGCTTA",
-            "GCTTAG",
-            "CTTAGG",
+        "TTAGGC",
+        "TAGGCT",
+        "AGGCTT",
+        "GGCTTA",
+        "GCTTAG",
+        "CTTAGG",
     ]
     result = cyclic_shifts(str_to_shift)
     assert result == expected_shifts
