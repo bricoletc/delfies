@@ -8,8 +8,8 @@ from delfies.interval_utils import Interval, Intervals
 
 
 class Orientation(Enum):
-    forward = 1
-    reverse = 2
+    forward = "+"
+    reverse = "-"
 
 
 @dataclass
@@ -49,6 +49,20 @@ def find_all_occurrences_in_genome(
     seq_regions: Intervals,
     interval_window_size: int,
 ) -> Intervals:
+    """
+    Developer note: 
+    - The point of `interval_window_size` is to produce an interval 
+      inside which softclip starts in aligned reads will be recorded. 
+      This is used in `G2S` breakpoint detection mode. Larger values allow for 
+      more breakpoint 'fuzziness'.
+    - The goal of this function is to return the 0-based position on chromosomes of the start of 
+      telomere arrays. This enables `G2S` breakpoints to be detected, by looking 
+      for softclips in aligned reads starting at/near the beginning of telomere arrays. 
+
+      This function currently assumes that, at assembled telomere arrays, 
+      the forward-oriented telomere starts at the 5' end of such arrays, while the 
+      reverse-oriented telomere sequence ends at the 3' end of such arrays.
+    """
     result = list()
     patterns = {
         Orientation.forward: re.compile(query_sequence),
@@ -63,17 +77,18 @@ def find_all_occurrences_in_genome(
         else:
             relative_to_absolute = 0
             target_seq = genome_fasta[seq_region.name]
+        chrom_length = len(genome_fasta[seq_region.name])
         for orientation, pattern in patterns.items():
             for match in pattern.finditer(str(target_seq)):
                 if orientation is Orientation.forward:
                     interval_midpoint = match.start()
                 else:
-                    interval_midpoint = match.end()
+                    interval_midpoint = match.end() - 1
                 interval_midpoint += relative_to_absolute
                 new_interval = Interval(
                     name=seq_region.name,
-                    start=interval_midpoint - interval_window_size,
-                    end=interval_midpoint + interval_window_size,
+                    start=max(0, interval_midpoint - interval_window_size),
+                    end=min(chrom_length - 1, interval_midpoint + interval_window_size),
                 )
                 result.append(new_interval)
     return result
