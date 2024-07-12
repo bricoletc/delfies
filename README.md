@@ -8,7 +8,7 @@ Delfies is a tool for the detection of DNA Elimination breakpoints
 Using `pip` (or equivalent - poetry, etc.): 
 ```sh
 # Download and install a specific release
-DELFIES_VERSION=0.1.0
+DELFIES_VERSION=0.3.0
 wget "https://github.com/bricoletc/delfies/archive/refs/tags/${DELFIES_VERSION}.tar.gz"
 tar -xf "delfies-${DELFIES_VERSION}.tar.gz
 pip install ./delfies-"${DELFIES_VERSION}"/
@@ -37,7 +37,7 @@ delfies --help
 
 First, we provide two basic definitions:
 
-- Breakpoints can be of two **breakpoint types**:
+- **Breakpoint type**:
   - S2G: telomere-containing softclipped-reads align to a location in the genome
   - G2S: non-telomere-containing softclipped-reads align to a location in the genome 
     that contains telomeres
@@ -58,13 +58,15 @@ First, we provide two basic definitions:
 The main outputs of `delfies` are:
 
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
-   elimination breakpoints. 
-   - The location itself is provided as an interval of size one, and corresponds to the 
-     location of the first eliminated base past the putative breakpoint. If multiple 
-     putative breakpoints have been merged (see below), the location with the maximal read support 
+   elimination breakpoints.
+   Note that delfies accounts for overlapping breakpoints, by clustering nearby breakpoints 
+   together (see CLI parameter `--clustering_threshold`).
+   - The location (columns 1,2 and 3) is provided as an interval of size one, and is defined
+     as the first eliminated base past the putative breakpoint. If multiple 
+     putative breakpoints have been clustered, the single location with the maximal read support 
      is used.
    - The name column (column 4) records the breakpoint type, as defined above. 
-     It also stores larger window, in the format `breakpoint_window: <start>-<end>`.
+     It also stores a larger window, in the format `breakpoint_window: <start>-<end>`.
      This contains all putative breakpoint positions with >=`--min_supporting_reads` read support, 
      and located within `--clustering_threshold` of each other. 
    - The score column (column 5) stores the number of sequencing reads that support 
@@ -85,7 +87,16 @@ The main outputs of `delfies` are:
     - Some additional information is provided, e.g. the position of the breakpoint 
       and the number of reads supporting the breakpoint ('num_telo_containing_softclips')
 
-**Importantly, visualise the results yourself.** 
+- `breakpoint_foci_<breakpoint_type>.tsv`: a tab-separated-value file containing the 
+   location of all putative breakpoints, the read support for each breakpoint (in both 
+   forward and reverse orientation), and the total read depth at the putative breakpoint, 
+   plus in a window around each breakpoint. This file enables assessing how sharp 
+   a breakpoint is, and accessing all the individual breakpoints that may have been 
+   clustered in `breakpoint_locations.bed`.
+
+### Visualising your results
+
+**It is important to visualise the results yourself.** 
 E.g., by loading the input fasta and BAM and output `breakpoint_locations.bed` in [IGV](https://github.com/igvteam/igv).
 
 # What's next
