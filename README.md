@@ -60,14 +60,16 @@ The main outputs of `delfies` are:
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
    elimination breakpoints. 
    - The location itself is provided as an interval of size one, and corresponds to the 
-     location of the first eliminated base past the putative breakpoint. 
+     location of the first eliminated base past the putative breakpoint. If multiple 
+     putative breakpoints have been merged (see below), the location with the maximal read support 
+     is used.
    - The name column (column 4) records the breakpoint type, as defined above. 
-     It also stores larger window, in the format `maximal_focus_window: <start>-<end>`,
-     containing multiple putative breakpoint positions that have been merged together, due 
-     to being adjacent.
-   - The score column (column 5) stores the number of sequencing reads that 
-     support the 'sharp' identified breakpoint (=one-base interval).
-    - The strand column (column 6) specifies the likely direction of eliminated DNA, 
+     It also stores larger window, in the format `breakpoint_window: <start>-<end>`.
+     This contains all putative breakpoint positions with >=`--min_supporting_reads` read support, 
+     and located within `--clustering_threshold` of each other. 
+   - The score column (column 5) stores the number of sequencing reads that support 
+     the breakpoint.
+   - The strand column (column 6) specifies the likely direction of eliminated DNA, 
       as defined above.
       
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
