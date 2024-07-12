@@ -49,10 +49,11 @@ First, we provide two basic definitions:
   the reduced genome (with telomeres), and breakpoint-supporting reads come from cells 
   with an unbroken genome
 
-- **Breakpoint strand**. The strand is defined as '+', or also called '3prime', if 
-  the softclips on reads occur 3' of the assembled genome, and '-' or '5prime', if 
-  they occur 5' of the assembled genome. For both `S2G` and `G2S` breakpoints, '+' suggests the 
-  eliminated genome occurs 3' of the identified breakpoint, and vice-versa.
+- **Breakpoint strand**: 
+  - '+', or also called '3prime', if the softclips on reads occur 3' of the assembled genome 
+  - '-' or '5prime', if they occur 5' of the assembled genome 
+
+  For both `S2G` and `G2S` breakpoints, '+' suggests the eliminated genome occurs 3' of the identified breakpoint, and vice-versa.
 
 ### Files 
 The main outputs of `delfies` are:
