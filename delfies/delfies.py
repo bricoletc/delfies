@@ -53,8 +53,9 @@ click.rich_click.OPTION_GROUPS = {
             "name": "Breakpoint detection",
             "options": [
                 "--breakpoint_type",
-                "--telomere_forward_seq",
+                "--telo_forward_seq",
                 "--telo_array_size",
+                "--telo_max_edit_distance",
                 "--clustering_threshold",
                 "--min_mapq",
                 "--read_filter_flag",
@@ -174,7 +175,7 @@ def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
     help="Path to bed of regions to analyse. Overrides 'seq_region'",
 )
 @click.option(
-    "--telomere_forward_seq",
+    "--telo_forward_seq",
     type=str,
     default=TELOMERE_SEQS["Nematoda"][Orientation.forward],
     help="The telomere sequence used by your organism. Please make sure this is provided in 'forward' orientation (i.e. 5'->3')",
@@ -188,10 +189,17 @@ def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
     show_default=True,
 )
 @click.option(
+    "--telo_max_edit_distance",
+    type=int,
+    default=3,
+    help="Maximum number of mutations allowed in the searched telomere array",
+    show_default=True,
+)
+@click.option(
     "--clustering_threshold",
     type=int,
     default=5,
-    help=f"Any breakpoints within this value (in bp) of each other will be merged. "
+    help=f"Any identified breakpoints within this value (in bp) of each other will be merged. "
     f"A larger threshold allows for more imprecise breakpoint locations",
     show_default=True,
 )
@@ -227,7 +235,7 @@ def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
     "--breakpoint_type",
     "-b",
     type=click.Choice(list(map(str, all_breakpoint_types)) + ["all"]),
-    help="The type of breakpoint to look for. By default, looks for all types of breakpoints",
+    help="The type of breakpoint to look for. By default, looks for all",
     default="all",
 )
 @click.option("--threads", type=int, default=1)
@@ -239,8 +247,9 @@ def main(
     odirname,
     seq_region,
     bed,
-    telomere_forward_seq,
+    telo_forward_seq,
     telo_array_size,
+    telo_max_edit_distance,
     clustering_threshold,
     min_mapq,
     read_filter_flag,
@@ -273,8 +282,8 @@ def main(
             seq_regions.append(Interval(contig))
 
     telomere_seqs = {
-        Orientation.forward: telomere_forward_seq,
-        Orientation.reverse: rev_comp(telomere_forward_seq),
+        Orientation.forward: telo_forward_seq,
+        Orientation.reverse: rev_comp(telo_forward_seq),
     }
 
     clustering_threshold = max(clustering_threshold, 0)
@@ -282,6 +291,7 @@ def main(
         bam_fname=bam_fname,
         telomere_seqs=telomere_seqs,
         telo_array_size=telo_array_size,
+        max_edit_distance=telo_max_edit_distance,
         clustering_threshold=clustering_threshold,
         min_mapq=min_mapq,
         read_filter_flag=read_filter_flag,

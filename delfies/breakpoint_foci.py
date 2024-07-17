@@ -17,7 +17,7 @@ from delfies.SAM_utils import (
 from delfies.seq_utils import ORIENTATIONS, Orientation, rev_comp
 
 READ_SUPPORT_PREFIX = "num_supporting_reads"
-READ_SUPPORTS = [READ_SUPPORT_PREFIX + ID_DELIM + o for o in ORIENTATIONS]
+READ_SUPPORTS = [f"{READ_SUPPORT_PREFIX}{ID_DELIM}{o}" for o in ORIENTATIONS]
 
 
 @dataclass
@@ -25,6 +25,7 @@ class BreakpointDetectionParams:
     bam_fname: str
     telomere_seqs: dict
     telo_array_size: int
+    max_edit_distance: int
     clustering_threshold: int
     min_mapq: int
     read_filter_flag: int
@@ -86,6 +87,7 @@ def record_softclips(
                 orientation,
                 detection_params.telomere_seqs,
                 min_telo_array_size=3,
+                max_edit_distance=detection_params.max_edit_distance,
             )
             softclips_start_inside_target_region = seq_region.spans(
                 softclipped_read.sc_ref
@@ -100,6 +102,7 @@ def record_softclips(
                 orientation,
                 detection_params.telomere_seqs,
                 detection_params.telo_array_size,
+                max_edit_distance=detection_params.max_edit_distance,
             )
             keep_read = softclipped_telo_array_found
         if not keep_read:
