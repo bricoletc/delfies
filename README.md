@@ -8,7 +8,7 @@ Delfies is a tool for the detection of DNA Elimination breakpoints
 Using `pip` (or equivalent - poetry, etc.): 
 ```sh
 # Download and install a specific release
-DELFIES_VERSION=0.3.0
+DELFIES_VERSION=0.4.0
 wget "https://github.com/bricoletc/delfies/archive/refs/tags/${DELFIES_VERSION}.tar.gz"
 tar -xf "delfies-${DELFIES_VERSION}.tar.gz
 pip install ./delfies-"${DELFIES_VERSION}"/
@@ -104,8 +104,15 @@ E.g., by loading the input fasta and BAM and output `breakpoint_locations.bed` i
 
 ## Tool constraints
 
-* Currently `delfies` looks for telomeric units repeated at least `--telo_array_size` times 
-  with no mismatches in the telomeric repeat unit.
+* For breakpoint detection, mutations in the softclips of reads are tolerated, but currently 
+  no mutations in the telomere sequences are allowed when looking for telomere arrays in the 
+  genome (for G2S mode)
+
+## Documentation
+
+- Make a TOC
+- Explain some of the important CLI options. Give examples for different data types (coverage, error rate, 'full' vs 'reduced' genome assembly)
+- Simplify a bit the outputs section?
 
 ## Detection mode 
 * G2S mode: add germline sequence sequence reconstruction at breakpoints
