@@ -1,6 +1,5 @@
 import pytest
 
-from delfies import ID_DELIM
 from delfies.breakpoint_foci import (
     READ_SUPPORTS,
     FociWindow,

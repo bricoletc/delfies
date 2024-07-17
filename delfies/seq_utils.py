@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from random import choice as random_choice
 
 from pyfastx import Fasta
 
@@ -24,11 +25,36 @@ class FastaRecord:
 ORIENTATIONS = list(map(lambda e: e.name, Orientation))
 
 REVCOMP_TABLE_DNA = dict(A="T", C="G", G="C", T="A", N="N")
+NUCLEOTIDES = set(REVCOMP_TABLE_DNA.keys())
 
 
 def rev_comp(seq: str) -> str:
     result = "".join([REVCOMP_TABLE_DNA[elem] for elem in seq[::-1].upper()])
     return result
+
+
+def randomly_substitute(seq: str, num_mutations: int = 1) -> str:
+    if num_mutations > len(seq):
+        raise ValueError(
+            f"{num_mutations} is greater than the length of the input sequence"
+        )
+    index_choices = list(range(len(seq)))
+    mutated_seq = seq
+    while num_mutations != 0:
+        index_choice = random_choice(index_choices)
+        index_choices = [el for el in index_choices if el != index_choice]
+        chosen_nucleotide = seq[index_choice]
+        if chosen_nucleotide not in NUCLEOTIDES:
+            raise ValueError("Not a nucleotide: {chosen_nucleotide}")
+        possible_mutations = [el for el in NUCLEOTIDES if el != chosen_nucleotide]
+        chosen_mutation = random_choice(possible_mutations)
+        mutated_seq = (
+            mutated_seq[:index_choice]
+            + chosen_mutation
+            + mutated_seq[index_choice + 1 :]
+        )
+        num_mutations -= 1
+    return mutated_seq
 
 
 TELOMERE_SEQS = {
@@ -50,17 +76,17 @@ def find_all_occurrences_in_genome(
     interval_window_size: int,
 ) -> Intervals:
     """
-    Developer note: 
-    - The point of `interval_window_size` is to produce an interval 
-      inside which softclip starts in aligned reads will be recorded. 
-      This is used in `G2S` breakpoint detection mode. Larger values allow for 
+    Developer note:
+    - The goal of this function is to return the 0-based position on chromosomes of the start of
+      telomere arrays. This enables `G2S` breakpoints to be detected, by looking
+      for softclips in aligned reads starting at/near the beginning of telomere arrays.
+    - The point of `interval_window_size` is to produce an interval
+      inside which softclip starts in aligned reads will be recorded.
+      This is used in `G2S` breakpoint detection mode. Larger values allow for
       more breakpoint 'fuzziness'.
-    - The goal of this function is to return the 0-based position on chromosomes of the start of 
-      telomere arrays. This enables `G2S` breakpoints to be detected, by looking 
-      for softclips in aligned reads starting at/near the beginning of telomere arrays. 
 
-      This function currently assumes that, at assembled telomere arrays, 
-      the forward-oriented telomere starts at the 5' end of such arrays, while the 
+      This function currently assumes that, at assembled telomere arrays,
+      the forward-oriented telomere starts at the 5' end of such arrays, while the
       reverse-oriented telomere sequence ends at the 3' end of such arrays.
     """
     result = list()

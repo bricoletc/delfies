@@ -1,16 +1,47 @@
-from tempfile import TemporaryDirectory
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
+import pytest
 from pyfastx import Fasta
 
-from delfies.seq_utils import cyclic_shifts, rev_comp, find_all_occurrences_in_genome
 from delfies.interval_utils import Interval
+from delfies.seq_utils import (
+    cyclic_shifts,
+    find_all_occurrences_in_genome,
+    randomly_substitute,
+    rev_comp,
+)
 
 
 def test_rev_comp():
     seq1 = "AATTAACCGG"
     expected_seq1 = "CCGGTTAATT"
     assert rev_comp(seq1) == expected_seq1
+
+
+class TestSequenceMutations:
+    def test_not_a_nucleotide_fails(self):
+        seq_to_mutate = "PPDD"
+        with pytest.raises(ValueError):
+            mutated_seq = randomly_substitute(seq_to_mutate)
+
+    def test_too_many_mutations_fails(self):
+        seq_to_mutate = "AATT"
+        with pytest.raises(ValueError):
+            mutated_seq = randomly_substitute(
+                seq_to_mutate, num_mutations=len(seq_to_mutate) + 1
+            )
+
+    def test_various_numbers_of_mutations(self):
+        seq_to_mutate = "AATTCCGG"
+        num_nucleotides = len(seq_to_mutate)
+        for num_mutations in range(num_nucleotides + 1):
+            mutated_seq = randomly_substitute(seq_to_mutate, num_mutations)
+            num_found_mutations = 0
+            for i in range(num_nucleotides):
+                if seq_to_mutate[i] != mutated_seq[i]:
+                    num_found_mutations += 1
+            assert num_found_mutations == num_mutations
 
 
 def test_cyclic_shifts():
@@ -69,7 +100,11 @@ class TestFindOccurrencesInGenome:
             interval_window_size=0,
         )
         expected_forward_start = self.len_default_query_revcomp_array
-        expected = [Interval(self.default_chrom_name, expected_forward_start, expected_forward_start)]
+        expected = [
+            Interval(
+                self.default_chrom_name, expected_forward_start, expected_forward_start
+            )
+        ]
         assert result == expected
 
         # Forward and reverse hits
@@ -81,14 +116,24 @@ class TestFindOccurrencesInGenome:
         )
         expected_reverse_start = self.len_default_query_revcomp_array - 1
         expected = [
-                Interval(self.default_chrom_name, expected_forward_start, expected_forward_start),
-                Interval(self.default_chrom_name, expected_reverse_start, expected_reverse_start),
-                ]
+            Interval(
+                self.default_chrom_name, expected_forward_start, expected_forward_start
+            ),
+            Interval(
+                self.default_chrom_name, expected_reverse_start, expected_reverse_start
+            ),
+        ]
         assert result == expected
 
     def test_find_all_occs_hits_in_region(self):
         region_start = self.len_default_query_revcomp_array
-        search_regions = [Interval(self.default_chrom_name, start=region_start, end=region_start + len(self.default_query))]
+        search_regions = [
+            Interval(
+                self.default_chrom_name,
+                start=region_start,
+                end=region_start + len(self.default_query),
+            )
+        ]
         fasta = self.make_fasta()
         result = find_all_occurrences_in_genome(
             self.default_query, fasta, search_regions, interval_window_size=0
@@ -98,7 +143,13 @@ class TestFindOccurrencesInGenome:
 
     def test_find_all_occs_hits_with_window_inside_genome(self):
         region_start = self.len_default_query_revcomp_array
-        search_regions = [Interval(self.default_chrom_name, start=region_start, end=region_start + len(self.default_query))]
+        search_regions = [
+            Interval(
+                self.default_chrom_name,
+                start=region_start,
+                end=region_start + len(self.default_query),
+            )
+        ]
         fasta = self.make_fasta()
         contained_window_size = 2
         result = find_all_occurrences_in_genome(
@@ -118,7 +169,13 @@ class TestFindOccurrencesInGenome:
 
     def test_find_all_occs_hits_with_window_outside_genome(self):
         region_start = self.len_default_query_revcomp_array
-        search_regions = [Interval(self.default_chrom_name, start=region_start, end=region_start + len(self.default_query))]
+        search_regions = [
+            Interval(
+                self.default_chrom_name,
+                start=region_start,
+                end=region_start + len(self.default_query),
+            )
+        ]
         fasta = self.make_fasta()
         overflowing_window_size = 400
         result = find_all_occurrences_in_genome(

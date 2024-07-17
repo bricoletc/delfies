@@ -8,14 +8,22 @@ from delfies.SAM_utils import (
     has_softclipped_telo_array,
     read_flag_matches,
 )
-from delfies.seq_utils import TELOMERE_SEQS, Orientation, cyclic_shifts, rev_comp
+from delfies.seq_utils import (
+    TELOMERE_SEQS,
+    Orientation,
+    cyclic_shifts,
+    randomly_substitute,
+    rev_comp,
+)
 
 DEFAULT_ALIGNED_SEQ = "ATGCAAAAAAAAATTTGGA"
 DEFAULT_TELO_DICT = TELOMERE_SEQS["Nematoda"]
 DEFAULT_NON_TELO_UNIT_FORWARD = "AAAAAA"
 DEFAULT_MIN_TELO_ARRAY_SIZE = 3
-DEFAULT_ADDED_SOFTCLIPPED_SEQ = (
-    DEFAULT_TELO_DICT[Orientation.forward] * DEFAULT_MIN_TELO_ARRAY_SIZE
+DEFAULT_FORWARD_TELO = DEFAULT_TELO_DICT[Orientation.forward]
+DEFAULT_FORWARD_TELO_ARRAY = DEFAULT_FORWARD_TELO * DEFAULT_MIN_TELO_ARRAY_SIZE
+DEFAULT_REVERSE_TELO_ARRAY = (
+    DEFAULT_TELO_DICT[Orientation.reverse] * DEFAULT_MIN_TELO_ARRAY_SIZE
 )
 
 
@@ -33,7 +41,7 @@ def pysam_basic_read():
 
 @pytest.fixture
 def pysam_read_with_3prime_softclips(pysam_basic_read):
-    telo_seq_added = DEFAULT_ADDED_SOFTCLIPPED_SEQ
+    telo_seq_added = DEFAULT_FORWARD_TELO_ARRAY
     read = pysam_basic_read
     read.query_sequence += telo_seq_added
     read.cigartuples += [(CSOFT_CLIP, len(telo_seq_added))]
@@ -42,7 +50,7 @@ def pysam_read_with_3prime_softclips(pysam_basic_read):
 
 @pytest.fixture
 def pysam_read_with_5prime_softclips(pysam_basic_read):
-    telo_seq_added = DEFAULT_ADDED_SOFTCLIPPED_SEQ
+    telo_seq_added = DEFAULT_FORWARD_TELO_ARRAY
     read = pysam_basic_read
     read.query_sequence = telo_seq_added + read.query_sequence
     read.cigartuples = [(CSOFT_CLIP, len(telo_seq_added))] + read.cigartuples
@@ -84,7 +92,7 @@ class TestSoftclipDetection:
             sc_ref=pysam_read_with_3prime_softclips.reference_start
             + len(DEFAULT_ALIGNED_SEQ),
             sc_query=len(DEFAULT_ALIGNED_SEQ),
-            sc_length=len(DEFAULT_ADDED_SOFTCLIPPED_SEQ),
+            sc_length=len(DEFAULT_FORWARD_TELO_ARRAY),
         )
         assert (
             find_softclip_at_extremity(
@@ -101,8 +109,8 @@ class TestSoftclipDetection:
             sequence=pysam_read_with_5prime_softclips.query_sequence,
             name=pysam_read_with_5prime_softclips.query_name,
             sc_ref=pysam_read_with_5prime_softclips.reference_start - 1,
-            sc_query=len(DEFAULT_ADDED_SOFTCLIPPED_SEQ) - 1,
-            sc_length=len(DEFAULT_ADDED_SOFTCLIPPED_SEQ),
+            sc_query=len(DEFAULT_FORWARD_TELO_ARRAY) - 1,
+            sc_length=len(DEFAULT_FORWARD_TELO_ARRAY),
         )
         assert (
             find_softclip_at_extremity(
@@ -134,36 +142,32 @@ class TestTeloArrayDetection:
             Orientation.forward,
             DEFAULT_TELO_DICT,
             DEFAULT_MIN_TELO_ARRAY_SIZE,
+            0,
         )
 
     def test_softclipped_read_with_telomeric_3prime_softclips_is_recognised(
         self, softclipped_read
     ):
-        added_softclips = (
-            DEFAULT_TELO_DICT[Orientation.forward] * DEFAULT_MIN_TELO_ARRAY_SIZE
-        )
-        softclipped_read.sequence += added_softclips
-        softclipped_read.sc_query = len(DEFAULT_ALIGNED_SEQ)
+        softclipped_read.sequence += DEFAULT_FORWARD_TELO_ARRAY
         assert has_softclipped_telo_array(
             softclipped_read,
             Orientation.forward,
             DEFAULT_TELO_DICT,
             DEFAULT_MIN_TELO_ARRAY_SIZE,
+            0,
         )
 
     def test_softclipped_read_with_telomeric_5prime_softclips_is_recognised(
         self, softclipped_read
     ):
-        added_softclips = (
-            DEFAULT_TELO_DICT[Orientation.reverse] * DEFAULT_MIN_TELO_ARRAY_SIZE
-        )
-        softclipped_read.sequence = added_softclips + softclipped_read.sequence
-        softclipped_read.sc_query = len(added_softclips) - 1
+        softclipped_read.sequence = DEFAULT_REVERSE_TELO_ARRAY
+        softclipped_read.sc_query = len(DEFAULT_REVERSE_TELO_ARRAY) - 1
         assert has_softclipped_telo_array(
             softclipped_read,
             Orientation.reverse,
             DEFAULT_TELO_DICT,
             DEFAULT_MIN_TELO_ARRAY_SIZE,
+            0,
         )
 
     def test_softclipped_read_with_shifted_telomeric_softclips_is_recognised(
@@ -182,7 +186,6 @@ class TestTeloArrayDetection:
                 )
                 if orientation is Orientation.forward:
                     softclipped_read.sequence = read_seq + added_softclips
-                    softclipped_read.sc_query = len(DEFAULT_ALIGNED_SEQ)
                 else:
                     softclipped_read.sequence = added_softclips + read_seq
                     softclipped_read.sc_query = len(added_softclips) - 1
@@ -191,6 +194,7 @@ class TestTeloArrayDetection:
                     orientation,
                     DEFAULT_TELO_DICT,
                     DEFAULT_MIN_TELO_ARRAY_SIZE,
+                    0,
                 )
 
     def test_softclipped_read_with_downstream_telomeric_softclips_is_not_recognised(
@@ -206,14 +210,13 @@ class TestTeloArrayDetection:
                 non_telo_unit = DEFAULT_NON_TELO_UNIT_FORWARD
                 added_softclips = (
                     non_telo_unit * DEFAULT_MIN_TELO_ARRAY_SIZE
-                    + DEFAULT_TELO_DICT[orientation] * DEFAULT_MIN_TELO_ARRAY_SIZE
+                    + DEFAULT_FORWARD_TELO_ARRAY
                 )
                 softclipped_read.sequence = read_seq + added_softclips
-                softclipped_read.sc_query = len(DEFAULT_ALIGNED_SEQ)
             else:
                 non_telo_unit = rev_comp(DEFAULT_NON_TELO_UNIT_FORWARD)
                 added_softclips = (
-                    DEFAULT_TELO_DICT[orientation] * DEFAULT_MIN_TELO_ARRAY_SIZE
+                    DEFAULT_REVERSE_TELO_ARRAY
                     + non_telo_unit * DEFAULT_MIN_TELO_ARRAY_SIZE
                 )
                 softclipped_read.sequence = added_softclips + read_seq
@@ -224,4 +227,44 @@ class TestTeloArrayDetection:
                 orientation,
                 DEFAULT_TELO_DICT,
                 DEFAULT_MIN_TELO_ARRAY_SIZE,
+                0,
+            )
+
+    def test_softclipped_read_with_mutated_telomeres_is_recognised(
+        self, softclipped_read
+    ):
+        mutated_telo_array = str()
+        for i in range(DEFAULT_MIN_TELO_ARRAY_SIZE):
+            mutated_telo_array += randomly_substitute(
+                DEFAULT_FORWARD_TELO, num_mutations=1
+            )
+        for orientation in Orientation:
+            if orientation is Orientation.forward:
+                softclipped_read.sequence += mutated_telo_array
+            else:
+                softclipped_read.sequence = (
+                    rev_comp(mutated_telo_array) + softclipped_read.sequence
+                )
+                softclipped_read.sc_query = len(mutated_telo_array) - 1
+            assert has_softclipped_telo_array(
+                softclipped_read,
+                orientation,
+                DEFAULT_TELO_DICT,
+                DEFAULT_MIN_TELO_ARRAY_SIZE,
+                max_edit_distance=DEFAULT_MIN_TELO_ARRAY_SIZE,
+            )
+
+    def test_max_edit_distance_threshold_is_applied(self, softclipped_read):
+        mutated_telo_array = str()
+        for i in range(DEFAULT_MIN_TELO_ARRAY_SIZE):
+            mutated_telo_array += randomly_substitute(
+                DEFAULT_FORWARD_TELO, num_mutations=1
+            )
+            softclipped_read.sequence += mutated_telo_array
+            assert not has_softclipped_telo_array(
+                softclipped_read,
+                Orientation.forward,
+                DEFAULT_TELO_DICT,
+                DEFAULT_MIN_TELO_ARRAY_SIZE,
+                max_edit_distance=1,
             )
