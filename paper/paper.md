@@ -24,10 +24,10 @@ case in species that undergo Programmed DNA Elimination (PDE), the systematic
 destruction of portions of the genome in somatic cells during early development.
 In these species, germline cells maintain an intact genome. 
 
-While PDE was first documented in 1887 in a parasitic nematode `[@Boveri1887]`,
+While PDE was first documented in 1887 in a parasitic nematode [@Boveri1887],
 since then various forms of PDE have been found in a wide variety of organisms,
 including birds, fish, insects, mammals, crustaceans, non-parasitic nematodes
-and ciliates `[Dedukh2021; Droto2022]`. In particular, some species eliminate entire 
+and ciliates [@Dedukh2021; @Droto2022]. In particular, some species eliminate entire 
 chromosomes (birds, fish, insects, mammals) while others eliminate portions of chromosomes, 
 with or without changes in chromosome number (copepod crustaceans, nematodes, ciliates).
 
@@ -51,8 +51,8 @@ and characterise the eliminated and retained genomes, and possibly produce more 
 # Statement of need
 
 Several other tools for the detection of DNA elimination breakpoints have been developed, 
-but mainly for the characterisation of IESs in ciliates. These are `parTIES` `[@parties:2015]`, 
-`SIGAR` `[@sigar:2020]`, `ADFinder` `[@adfinder:2020]` and `bleTIES` `[@bleties:2021]`.
+but mainly for the characterisation of IESs in ciliates. These are `parTIES` [@parties:2015], 
+`SIGAR` [@sigar:2020], `ADFinder` [@adfinder:2020] and `bleTIES` [@bleties:2021].
 
 
 <!-- looks for germline-specific reads mapping to somatically-assembled genomic sequences, in ciliates. -->
