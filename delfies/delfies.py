@@ -25,7 +25,7 @@ from delfies.breakpoint_foci import (
     cluster_breakpoint_foci,
     find_breakpoint_foci_row_based,
     setup_tents,
-    write_tents
+    write_tents,
 )
 from delfies.interval_utils import Interval, Intervals
 from delfies.SAM_utils import (

@@ -2,7 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain as it_chain
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
 from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
@@ -14,7 +14,7 @@ from delfies.SAM_utils import (
     has_softclipped_telo_array,
     read_flag_matches,
 )
-from delfies.seq_utils import ORIENTATIONS, Orientation, rev_comp
+from delfies.seq_utils import ORIENTATIONS, Orientation
 
 READ_SUPPORT_PREFIX = "num_supporting_reads"
 READ_SUPPORTS = [f"{READ_SUPPORT_PREFIX}{ID_DELIM}{o}" for o in ORIENTATIONS]
