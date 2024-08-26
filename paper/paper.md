@@ -75,8 +75,8 @@ the 'strand' of breakpoints in the appropriate BED column, enabling subsequently
 classifying the genome into 'retained' and 'eliminated' compartments (details
 in the software repository). 
 
-`delfies` additionally extracts and outputs the sequences around the
-breakpoints in a Fasta-formatted file, which MILTEL does not. This enables
+In addition to breakpoint locations, `delfies` extracts and outputs the
+sequences around the breakpoints in a Fasta-formatted file. This enables
 searching for motifs specifying breakpoints, e.g. using MEME [@Bailey2015].
 
 MILTEL was designed to detect telomere addition in the reads only. `delfies`
