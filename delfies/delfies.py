@@ -24,6 +24,8 @@ from delfies.breakpoint_foci import (
     MaximalFocus,
     cluster_breakpoint_foci,
     find_breakpoint_foci_row_based,
+    setup_tents,
+    write_tents
 )
 from delfies.interval_utils import Interval, Intervals
 from delfies.SAM_utils import (
@@ -111,6 +113,11 @@ def run_breakpoint_detection(
             ),
         )
     all_files = glob(f"{detection_params.ofname_base}_*.tsv")
+    # If no foci found, write a dummy file just to have the header in the aggregated output tsv
+    if len(all_files) == 0:
+        tents = setup_tents()
+        write_tents(detection_params.ofname_base, tents)
+        all_files = glob(f"{detection_params.ofname_base}_*.tsv")
     foci_tsv = f"{detection_params.ofname_base}.tsv"
     with open(foci_tsv, "w") as ofstream:
         for i, fname in enumerate(all_files):
