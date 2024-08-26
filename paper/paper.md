@@ -1,5 +1,5 @@
 ---
-title: 'delfies: a Python package for the detection of DNA elimination breakpoints with neo-telomere addition'
+title: '`delfies`: a Python package for the detection of DNA elimination breakpoints with telomere addition'
 tags:
   - Python
   - Bioinformatics
@@ -19,14 +19,14 @@ bibliography: paper.bib
 # Summary
 
 In multicellular organisms, cells generally carry an identical genome,
-transmitted through successive cell divisions from the founding zygote. This is not the
+faithfully transmitted through cell divisions from the founding zygote. This is not the
 case in species that undergo Programmed DNA Elimination (PDE), the systematic
 destruction of portions of the genome in somatic cells during early development.
-In these species, germline cells maintain an intact genome, while somatic cells 
-maintain a reduced genome.
+In these species, somatic cells carry a reduced genome, while germline cells maintain an 
+intact genome.
 
 PDE was first documented in 1887 in a parasitic nematode [@Boveri1887], and
-since then various forms of PDE have been found in a wide variety of organisms,
+since then various forms of PDE have been found in a wide variety of organisms
 including birds, fish, insects, mammals, crustaceans, other nematodes
 and ciliates [@Dedukh2021; @Drotos2022]. Some species eliminate entire 
 chromosomes (birds, fish, insects, mammals) while others eliminate portions of chromosomes, 
@@ -34,10 +34,10 @@ with or without changes in chromosome number (copepod crustaceans, nematodes, ci
 
 While of considerable interest, the function of PDE remains largely unknown.
 One of the best-studied clade so far is ciliates, unicellular eukaryotes that
-maintain distinct 'germline' and 'somatic' nuclei within the same cellular
+maintain distinct 'germline'/'somatic' nuclei within a single cellular
 membrane. Ciliates eliminate both small sequences that are spliced out of the
 genome, called internal eliminated sequences (IESs), and large fragments of
-chromosomes, including at the subtelomeres. In ciliates, the latter has
+chromosomes, including at the subtelomeres. In ciliates, this chromosome fragmentation has
 received less attention, both genomically and functionally.
 
 Copepods and nematodes also eliminate large fragments of DNA, including at the
@@ -55,24 +55,25 @@ species in which this form of PDE occurs.
 # Statement of need
 
 Several other tools for the detection of DNA elimination breakpoints have been
-developed and validated in the context of ciliates: `parTIES` [@parties:2015],
+developed and tested in the context of ciliates: `parTIES` [@parties:2015],
 `SIGAR` [@sigar:2020], `ADFinder` [@adfinder:2020] and `bleTIES`
 [@bleties:2021]. Of these, `parTIES`, `ADFinder` and `SIGAR` allow the
-detection of IESs only, not sites of chromosome breakage with de-novo telomere
+detection of IESs only, not sites of chromosome breakage with neo-telomere
 addition, and were primarily designed for short-read sequencing data. `bleTIES`
 was designed to detect and reconstruct IESs in ciliates in the context of
 long-read sequencing data, and also includes a module for detecting chomosome
 breakage sites with telomere addition, called MILTEL [@bleties:2021].
 
 `delfies` presents several new features compared to MILTEL. Both tools output
-the locations of breakpoints, in standard bioinformatics formats: MILTEL in a
+the locations of breakpoints in standard bioinformatics formats: MILTEL in a
 GFF3-formatted file, `delfies` in a BED-formatted file. While MILTEL expresses
 breakpoints in isolation, `delfies` can merge multiple breakpoints occurring in
-close proximity, in a user-configurable way. This allows for simplified output,
-and for more or less sharply-defined breakpoints. `delfies` also outputs the
-'strand' of breakpoints in the appropriate BED column, enabling easily
-classifying the genome in 'retained' and 'eliminated' compartments (see
-repository docs for how). 
+close proximity in a user-configurable way. This allows for more or less
+sharply-defined, a feature that is known to vary in both ciliates
+[@Betermier2023] and nematodes [@Rey2023; @Estrem2023]. `delfies` also outputs
+the 'strand' of breakpoints in the appropriate BED column, enabling subsequently
+classifying the genome into 'retained' and 'eliminated' compartments (details
+in the software repository). 
 
 `delfies` additionally extracts and outputs the sequences around the
 breakpoints in a Fasta-formatted file, which MILTEL does not. This enables
@@ -82,7 +83,7 @@ MILTEL was designed to detect telomere addition in the reads only. `delfies`
 additionally detects breakpoints in which telomeres have been assembled in the
 genome and reads containing non-telomeric sequence from the 'complete' genome.
 These breakpoints can be used to re-assemble the genome past the 'reduced
-genome' (documented in the software repository).
+genome' (details in the softare repository).
 
 In practical terms, `delfies` has a highly configurable command-line interface,
 enabling specifying how much to filter read alignments, which regions of the
