@@ -1,8 +1,24 @@
 # Delfies
 
-Delfies is a tool for the detection of DNA Elimination breakpoints 
+`delfies` is a tool for the detection of DNA breakpoints with de-novo telomere addition.
 
-# Getting started
+It identifies genomic locations where double-strand breaks have occurred followed by telomere addition.
+It was initially designed and validated for studying the process of Programmed DNA Elimination
+in [nematodes](https://doi.org/10.1016/j.cub.2023.07.058), but it should work for other clades too.
+
+# <a name="started"></a> Getting started
+
+`delfies` takes as input a genome fasta (gzipped supported) and a SAM/BAM of sequencing reads 
+aligned to the genome. The SAM/BAM needs to be indexed, e.g. using `samtools index`.
+
+```sh
+delfies --help
+samtools index <aligned_reads>.bam
+delfies <genome>.fa.gz <aligned_reads>.bam <output_dir>
+less <output_dir>/breakpoint_locations.bed
+```
+
+# <a name="manual"></a> User Manual
 
 ## Installation
 Using `pip` (or equivalent - poetry, etc.): 
@@ -18,115 +34,45 @@ git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
 ```
 
-## Usage
-
-`delfies` takes as input a genome fasta (gzipped supported) and a BAM of sequencing reads 
-aligned to the genome. 
-
-Do use the `--threads` option if you have multiple cores/CPUs available.
-
-For the full list of options, see:
+## CLI options
 
 ```sh
 delfies --help
 ```
 
+* Do use the `--threads` option if you have multiple cores/CPUs available.
+* [Breakpoints]
+   * There are two types of breakpoints: see [detailed docs][detailed_docs].
+   * Nearby breakpoints can be clustered together to account for variability in breakpoint location (`--clustering_threshold`).
+* [Region selection]: You can select a specific region to focus on, specified as a string or as a BED file.
+* [Telomeres] 
+    * Specify the telomere sequence for your organism using `--telo_forward_seq`. 
+      If you're unsure, I recommend the tool [telomeric-identifier](https://github.com/tolkit/telomeric-identifier) for finding out.
+* [Aligned reads]
+    * To analyse confidently-aligned reads only, you can filter reads by MAPQ (`--min_mapq`) and by bitwise flag (`--read_filter_flag`).
+    * You can tolerate more or less mutations in the telomere sequences (and in the reads) using `--telo_max_edit_distance` and `--telo_array_size`.
+
 ## Outputs
 
-### Terminology: breakpoint types and strandedness
-
-First, we provide two basic definitions:
-
-- **Breakpoint type**:
-  - S2G: telomere-containing softclipped-reads align to a location in the genome
-  - G2S: non-telomere-containing softclipped-reads align to a location in the genome 
-    that contains telomeres
-  
-  These two types both describe elimination breakpoints at which telomeres have been 
-  added to the retained fragments. In the case of `S2G` breakpoints, the assembled 
-  genome is the unbroken genome, and breakpoint-supporting reads come from cells 
-  with a broken genome. In the case of `G2S` breakpoints, the assembled genome is 
-  the reduced genome (with telomeres), and breakpoint-supporting reads come from cells 
-  with an unbroken genome
-
-- **Breakpoint strand**: 
-  - '+', or also called '3prime', if the softclips on reads occur 3' of the assembled genome 
-  - '-' or '5prime', if they occur 5' of the assembled genome 
-
-  For both `S2G` and `G2S` breakpoints, '+' suggests the eliminated genome occurs 3' of the identified breakpoint, and vice-versa.
-
-### Files 
-The main outputs of `delfies` are:
+The two main outputs of `delfies` are:
 
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
    elimination breakpoints.
-   Note that delfies accounts for overlapping breakpoints, by clustering nearby breakpoints 
-   together (see CLI parameter `--clustering_threshold`).
-   - The location (columns 1,2 and 3) is provided as an interval of size one, and is defined
-     as the first eliminated base past the putative breakpoint. If multiple 
-     putative breakpoints have been clustered, the single location with the maximal read support 
-     is used.
-   - The name column (column 4) records the breakpoint type, as defined above. 
-     It also stores a larger window, in the format `breakpoint_window: <start>-<end>`.
-     This contains all putative breakpoint positions with >=`--min_supporting_reads` read support, 
-     and located within `--clustering_threshold` of each other. 
-   - The score column (column 5) stores the number of sequencing reads that support 
-     the breakpoint.
-   - The strand column (column 6) specifies the likely direction of eliminated DNA, 
-      as defined above.
-      
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
-   of identified elimination breakpoints. The header field contains:
-   - A sequence ID as `<breakpoint_type>_<breakpoint_direction>_<chrom>`
+   of identified elimination breakpoints
 
-     `breakpoint_type`: 'S2G' or 'G2S', as defined above
+For more details on outputs, see [detailed docs][detailed_docs].
 
-     `breakpoint_type`: '5prime' or '3prime', as defined above
+## Applications
 
-     `chrom`: the contig/scaffold/chromosome name
+* The fasta output enables looking for sequence motifs that occur at breakpoints, e.g. using [MEME](https://meme-suite.org/meme/).
+* The BED output enables classifying a genome into retained and eliminated regions. 
+  The 'strand' of breakpoints is especially useful for this: see [detailed docs][detailed_docs].
+* The BED output also enables assembling past somatic telomeres: for how to do this, see [detailed docs][detailed_docs].
 
-    - Some additional information is provided, e.g. the position of the breakpoint 
-      and the number of reads supporting the breakpoint ('num_telo_containing_softclips')
+## Visualising your results
 
-- `breakpoint_foci_<breakpoint_type>.tsv`: a tab-separated-value file containing the 
-   location of all putative breakpoints, the read support for each breakpoint (in both 
-   forward and reverse orientation), and the total read depth at the putative breakpoint, 
-   plus in a window around each breakpoint. This file enables assessing how sharp 
-   a breakpoint is, and accessing all the individual breakpoints that may have been 
-   clustered in `breakpoint_locations.bed`.
+**I highly recommend visualising your results**!
+E.g., by loading your input fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in [IGV](https://github.com/igvteam/igv).
 
-### Visualising your results
-
-**It is important to visualise the results yourself.** 
-E.g., by loading the input fasta and BAM and output `breakpoint_locations.bed` in [IGV](https://github.com/igvteam/igv).
-
-# What's next
-
-## Tool constraints
-
-* For breakpoint detection, mutations in the softclips of reads are tolerated, but currently 
-  no mutations in the telomere sequences are allowed when looking for telomere arrays in the 
-  genome (for G2S mode)
-
-## Documentation
-
-- Make a TOC
-- Explain some of the important CLI options. Give examples for different data types (coverage, error rate, 'full' vs 'reduced' genome assembly)
-- Simplify a bit the outputs section?
-
-## Detection mode 
-* G2S mode: add germline sequence sequence reconstruction at breakpoints
-* S2G mode: remove breakpoints that occur at locations of the genome containing telomeres?
-
-## Benchmark
-
-* Possibly benchmark against one or more tools below.
-
-### Other tools
-
-| Tool name   | Paper | Code |
-| ----------- | ----- | ---- |
-| ParTIES     | https://doi.org/10.1093/bioinformatics/btv691  | https://github.com/oarnaiz/ParTIES |
-| SIGAR       | https://doi.org/10.1093/gbe/evaa147 | https://github.com/yifeng-evo/SIGAR |
-| ADFinder    | https://doi.org/10.1093/bioinformatics/btaa226 | https://github.com/weibozheng/ADFinder |
-| BleTIES     | https://doi.org/10.1093/bioinformatics/btab613 | https://github.com/Swart-lab/bleties |
+[detailed_docs]: `docs/detailed_manual.md`
