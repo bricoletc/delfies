@@ -65,7 +65,7 @@ species that undergo Programmed DNA Elimination, this is the somatic genome).
 
 I provide a script in `scripts/deplete_G2S_reads.sh` for removing from your input BAM the 
 reads that support these somatic telomeres. Re-assembling the 'soma-depleted' reads only
-allows extending past them, and assembling the complete genome.
+allows extending past them and assembling a more complete genome.
 
 Here is an example of reads aligned to a G2S breakpoint, before and after running 
 the G2S read depletion script:
