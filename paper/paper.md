@@ -75,15 +75,18 @@ the 'strand' of breakpoints in the appropriate BED column, enabling subsequently
 classifying the genome into 'retained' and 'eliminated' compartments (details
 in the software repository). 
 
+`delfies` also explicitly models and outputs two types of breakpoints: in the
+first, the assembled genome is 'complete' and reads from the 'reduced' genome
+contain telomeres. In the second, the assembled genome is 'reduced' and
+contains telomeres, and reads from the 'complete' genome contain unique
+non-telomeric sequence. By labelling these explicitly, `delfies` allows new
+downstream applications: for example, when the reduced genome has been
+assembled, reads from the complete genome can be specifically extracted and
+used to assemble past the reduced genome (details in the softare repository).
+
 In addition to breakpoint locations, `delfies` extracts and outputs the
 sequences around the breakpoints in a Fasta-formatted file. This enables
 searching for motifs specifying breakpoints, e.g. using MEME [@Bailey2015].
-
-MILTEL was designed to detect telomere addition in the reads only. `delfies`
-additionally detects breakpoints in which telomeres have been assembled in the
-genome and reads containing non-telomeric sequence from the 'complete' genome.
-These breakpoints can be used to re-assemble the genome past the 'reduced
-genome' (details in the softare repository).
 
 In practical terms, `delfies` has a highly configurable command-line interface,
 enabling specifying how much to filter read alignments, which regions of the
