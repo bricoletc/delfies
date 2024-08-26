@@ -4,18 +4,18 @@
 
 It identifies genomic locations where double-strand breaks have occurred followed by telomere addition.
 It was initially designed and validated for studying the process of Programmed DNA Elimination
-in [nematodes](https://doi.org/10.1016/j.cub.2023.07.058), but it should work for other clades too.
+in [nematodes](https://doi.org/10.1016/j.cub.2023.07.058), but should work for other clades and applications too.
 
 # <a name="started"></a> Getting started
 
-`delfies` takes as input a genome fasta (gzipped supported) and a SAM/BAM of sequencing reads 
-aligned to the genome. The SAM/BAM needs to be indexed, e.g. using `samtools index`.
+`delfies` takes as input a genome fasta (gzipped supported) and an indexed SAM/BAM of 
+sequencing reads aligned to the genome.
 
 ```sh
 delfies --help
 samtools index <aligned_reads>.bam
 delfies <genome>.fa.gz <aligned_reads>.bam <output_dir>
-less <output_dir>/breakpoint_locations.bed
+cat <output_dir>/breakpoint_locations.bed
 ```
 
 # <a name="manual"></a> User Manual
@@ -75,4 +75,4 @@ For more details on outputs, see [detailed docs][detailed_docs].
 **I highly recommend visualising your results**!
 E.g., by loading your input fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in [IGV](https://github.com/igvteam/igv).
 
-[detailed_docs]: `docs/detailed_manual.md`
+[detailed_docs]: docs/detailed_manual.md
