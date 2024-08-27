@@ -41,7 +41,7 @@ chromosomes, including at the subtelomeres. In ciliates, this chromosome fragmen
 received less attention, both genomically and functionally.
 
 Copepods and nematodes also eliminate large fragments of DNA, including at the
-subtelomeres. The main commonality so far between these three clades is the
+subtelomeres. The main commonality so far between these clades and ciliates is the
 elimination of all telomeric sequences during PDE, followed by the addition of
 new telomeres at the extermities of newly-maintained mini-chromosomes in
 somatic cells.
@@ -55,34 +55,36 @@ species in which this form of PDE occurs.
 # Statement of need
 
 Several other tools for the detection of DNA elimination breakpoints have been
-developed and tested in the context of ciliates: `parTIES` [@parties:2015],
+developed and tested, all in the context of ciliates: `parTIES` [@parties:2015],
 `SIGAR` [@sigar:2020], `ADFinder` [@adfinder:2020] and `bleTIES`
 [@bleties:2021]. Of these, `parTIES`, `ADFinder` and `SIGAR` allow the
 detection of IESs only, not sites of chromosome breakage with neo-telomere
 addition, and were primarily designed for short-read sequencing data. `bleTIES`
-was designed to detect and reconstruct IESs in ciliates in the context of
+was designed to detect and reconstruct IESs in the context of
 long-read sequencing data, and also includes a module for detecting chomosome
-breakage sites with telomere addition, called MILTEL [@bleties:2021].
+breakage sites with telomere addition called MILTEL [@bleties:2021].
 
-`delfies` presents several new features compared to MILTEL. Both tools output
-the locations of breakpoints in standard bioinformatics formats: MILTEL in a
-GFF3-formatted file, `delfies` in a BED-formatted file. While MILTEL expresses
-breakpoints in isolation, `delfies` can merge multiple breakpoints occurring in
-close proximity in a user-configurable way. This allows for more or less
-sharply-defined breakpoints, a feature that is known to vary in both ciliates
-and nematodes [@Betermier2023; @Rey2023; @Estrem2023]. `delfies` also outputs
-the strand of breakpoints in the appropriate BED column, enabling subsequently
-classifying the genome into 'retained' and 'eliminated' compartments (details
-in the software repository). 
+`delfies` was developed when studying PDE in nematodes, and presents several
+new features compared to MILTEL. Both tools output the locations of breakpoints
+in standard bioinformatics formats: MILTEL in a GFF3-formatted file, `delfies`
+in a BED-formatted file. While MILTEL expresses breakpoints in isolation,
+`delfies` can merge multiple breakpoints occurring in close proximity in a
+user-configurable way. This allows for more or less sharply-defined
+breakpoints, a feature that is known to vary in both ciliates and nematodes
+[@Betermier2023; @Rey2023; @Estrem2023]. `delfies` also outputs the strand of
+breakpoints in the appropriate BED column, enabling subsequently classifying
+the genome into 'retained' and 'eliminated' compartments (details in the
+software repository). 
 
-`delfies` explicitly models and outputs two types of breakpoints: in the first,
-the assembled genome is 'complete' and reads from the 'reduced' genome contain
-telomeres. In the second, the assembled genome is 'reduced' and contains
-telomeres, and reads from the 'complete' genome contain unique non-telomeric
-sequence. By labelling these explicitly, `delfies` allows a new downstream
-applications: when the reduced genome has been assembled, reads from the
-complete genome can be specifically extracted and used to assemble past the
-reduced genome (instructions provided in the softare repository).
+`delfies` also explicitly models and outputs two types of breakpoints: in the
+first, the assembled genome is 'complete' and reads from the 'reduced' genome
+contain telomeres after the breakpoint. In the second, the assembled genome is
+'reduced' and contains telomeres, and reads from the 'complete' genome contain
+unique non-telomeric sequence. These two types can be treated separately. For
+example, in the case of a 'reduced' assembled genome, using the location of
+breakpoints reads from the reduced genome can be specifically depleted and the
+new read-set used to assemble the complete genome (instructions provided in the
+softare repository).
 
 In addition to breakpoint locations, `delfies` extracts and outputs the
 sequences around the breakpoints in a Fasta-formatted file. This enables
@@ -101,7 +103,7 @@ motifs, and retained/eliminated genomes of several nematode genera in the family
 Stevens *et al.*, in preparation). As more and more genomic data from
 species undergoing Programmed DNA Elimination become available, we anticipate
 this tool can be of broad use to this research community, as well as in novel fields 
-of applications such as cancer biology.
+of research in which new chromosomes are formed, such as cancer biology.
 
 # Acknowledgements
 
