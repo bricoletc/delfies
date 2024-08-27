@@ -1,5 +1,5 @@
 ---
-title: '`delfies`: a Python package for the detection of DNA elimination breakpoints with telomere addition'
+title: '`delfies`: a Python package for the detection of DNA breakpoints with neo-telomere addition'
 tags:
   - Python
   - Bioinformatics
@@ -69,20 +69,20 @@ the locations of breakpoints in standard bioinformatics formats: MILTEL in a
 GFF3-formatted file, `delfies` in a BED-formatted file. While MILTEL expresses
 breakpoints in isolation, `delfies` can merge multiple breakpoints occurring in
 close proximity in a user-configurable way. This allows for more or less
-sharply-defined, a feature that is known to vary in both ciliates
-[@Betermier2023] and nematodes [@Rey2023; @Estrem2023]. `delfies` also outputs
-the 'strand' of breakpoints in the appropriate BED column, enabling subsequently
+sharply-defined breakpoints, a feature that is known to vary in both ciliates
+and nematodes [@Betermier2023; @Rey2023; @Estrem2023]. `delfies` also outputs
+the strand of breakpoints in the appropriate BED column, enabling subsequently
 classifying the genome into 'retained' and 'eliminated' compartments (details
 in the software repository). 
 
-`delfies` also explicitly models and outputs two types of breakpoints: in the
-first, the assembled genome is 'complete' and reads from the 'reduced' genome
-contain telomeres. In the second, the assembled genome is 'reduced' and
-contains telomeres, and reads from the 'complete' genome contain unique
-non-telomeric sequence. By labelling these explicitly, `delfies` allows new
-downstream applications: for example, when the reduced genome has been
-assembled, reads from the complete genome can be specifically extracted and
-used to assemble past the reduced genome (details in the softare repository).
+`delfies` explicitly models and outputs two types of breakpoints: in the first,
+the assembled genome is 'complete' and reads from the 'reduced' genome contain
+telomeres. In the second, the assembled genome is 'reduced' and contains
+telomeres, and reads from the 'complete' genome contain unique non-telomeric
+sequence. By labelling these explicitly, `delfies` allows a new downstream
+applications: when the reduced genome has been assembled, reads from the
+complete genome can be specifically extracted and used to assemble past the
+reduced genome (instructions provided in the softare repository).
 
 In addition to breakpoint locations, `delfies` extracts and outputs the
 sequences around the breakpoints in a Fasta-formatted file. This enables
@@ -96,11 +96,12 @@ genome of size 240Mbp sequenced at 85X average coverage with PacBio HiFi data,
 For further speed, `delfies` also supports multi-threading.
 
 `delfies` has already been used to successfully characterise the breakpoints,
-motifs, and retained/eliminated genomes of nematode genera in the family
+motifs, and retained/eliminated genomes of several nematode genera in the family
 *Rhabditidae*, supporting two upcoming publications (Letcher *et al.* and
-Stevens *et al.*, both in preparation). As more and more genomic data from
+Stevens *et al.*, in preparation). As more and more genomic data from
 species undergoing Programmed DNA Elimination become available, we anticipate
-this tool can be of broad use to the research community as a whole.
+this tool can be of broad use to this research community, as well as in novel fields 
+of applications such as cancer biology.
 
 # Acknowledgements
 
