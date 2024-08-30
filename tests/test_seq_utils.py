@@ -1,8 +1,4 @@
-from pathlib import Path
-from tempfile import TemporaryDirectory
-
 import pytest
-from pyfastx import Fasta
 
 from delfies.interval_utils import Interval
 from delfies.seq_utils import (
@@ -11,6 +7,7 @@ from delfies.seq_utils import (
     randomly_substitute,
     rev_comp,
 )
+from tests import ClassWithTempFasta
 
 
 def test_rev_comp():
@@ -58,7 +55,7 @@ def test_cyclic_shifts():
     assert result == expected_shifts
 
 
-class TestFindOccurrencesInGenome:
+class TestFindOccurrencesInGenome(ClassWithTempFasta):
     default_chrom_name = "chr1"
     default_query = "TTAGGC"
     default_query_revcomp_array = rev_comp(default_query) * 9
@@ -68,29 +65,15 @@ class TestFindOccurrencesInGenome:
     )
     default_search_regions = [Interval(default_chrom_name)]
 
-    @classmethod
-    def setup_class(cls):
-        cls.temp_dir = TemporaryDirectory()
-        cls.temp_fasta = Path(cls.temp_dir.name) / "temp.fasta"
-
-    @classmethod
-    def teardown_class(cls):
-        cls.temp_dir.cleanup()
-
-    def make_fasta(self, input_string=default_reference):
-        with self.temp_fasta.open("w") as ofstream:
-            ofstream.write(input_string)
-        return Fasta(str(self.temp_fasta), build_index=True)
-
     def test_find_all_occs_no_hits(self):
-        fasta = self.make_fasta()
+        fasta = self.make_fasta(self.default_reference)
         result = find_all_occurrences_in_genome(
             "AATTTTTTAAA", fasta, self.default_search_regions, interval_window_size=0
         )
         assert result == []
 
     def test_find_all_occs_hits_whole_chrom(self):
-        fasta = self.make_fasta()
+        fasta = self.make_fasta(self.default_reference)
 
         # Forward only hits
         result = find_all_occurrences_in_genome(
@@ -134,7 +117,7 @@ class TestFindOccurrencesInGenome:
                 end=region_start + len(self.default_query),
             )
         ]
-        fasta = self.make_fasta()
+        fasta = self.make_fasta(self.default_reference)
         result = find_all_occurrences_in_genome(
             self.default_query, fasta, search_regions, interval_window_size=0
         )
@@ -150,7 +133,7 @@ class TestFindOccurrencesInGenome:
                 end=region_start + len(self.default_query),
             )
         ]
-        fasta = self.make_fasta()
+        fasta = self.make_fasta(self.default_reference)
         contained_window_size = 2
         result = find_all_occurrences_in_genome(
             self.default_query,
@@ -176,7 +159,7 @@ class TestFindOccurrencesInGenome:
                 end=region_start + len(self.default_query),
             )
         ]
-        fasta = self.make_fasta()
+        fasta = self.make_fasta(self.default_reference)
         overflowing_window_size = 400
         result = find_all_occurrences_in_genome(
             self.default_query,
