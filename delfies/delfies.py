@@ -3,7 +3,6 @@ import multiprocessing as mp
 import os
 from glob import glob
 from pathlib import Path
-from typing import List
 
 import rich_click as click
 from datasci import Tents
@@ -19,14 +18,14 @@ from delfies import (
     all_breakpoint_types,
 )
 from delfies.breakpoint_foci import (
-    READ_SUPPORT_PREFIX,
     BreakpointDetectionParams,
-    MaximalFocus,
+    MaximalFoci,
     cluster_breakpoint_foci,
     find_breakpoint_foci_row_based,
     setup_tents,
     write_tents,
 )
+from delfies.breakpoint_sequences import write_breakpoint_sequences
 from delfies.interval_utils import Interval, Intervals
 from delfies.SAM_utils import (
     DEFAULT_MIN_MAPQ,
@@ -35,7 +34,6 @@ from delfies.SAM_utils import (
 )
 from delfies.seq_utils import (
     TELOMERE_SEQS,
-    FastaRecord,
     Orientation,
     find_all_occurrences_in_genome,
     rev_comp,
@@ -72,33 +70,6 @@ click.rich_click.OPTION_GROUPS = {
         },
     ]
 }
-
-
-MaximalFoci = List[MaximalFocus]
-
-
-def extract_breakpoint_sequences(
-    maximal_foci: MaximalFoci, genome_fasta: str, seq_window_size: int
-) -> List[FastaRecord]:
-    genome = Fasta(genome_fasta)
-    result = list()
-    for max_focus in maximal_foci:
-        focus = max_focus.focus
-        start = int(focus.start)
-        if start < 0:
-            continue
-        breakpoint_sequence = (
-            genome.fetch(focus.contig, (start - seq_window_size, start))
-            + "N"
-            + genome.fetch(focus.contig, (start, start + seq_window_size))
-        )
-        strand_name = "3prime"
-        if max_focus.orientation is Orientation.reverse:
-            breakpoint_sequence = rev_comp(breakpoint_sequence)
-            strand_name = "5prime"
-        breakpoint_name = f"{max_focus.breakpoint_type}_{strand_name}_{focus.contig} breakpoint_pos:{start} {READ_SUPPORT_PREFIX}:{max_focus.max_value} next_best_value_on_same_strand:{max_focus.next_max_value} best_value_on_other_strand:{max_focus.max_value_other_orientation}"
-        result.append(FastaRecord(breakpoint_name, breakpoint_sequence))
-    return result
 
 
 def run_breakpoint_detection(
@@ -140,18 +111,6 @@ def run_breakpoint_detection(
     for m_f in maximal_foci:
         m_f.breakpoint_type = detection_params.breakpoint_type
     return maximal_foci
-
-
-def write_breakpoint_sequences(
-    genome_fname: str, maximal_foci: MaximalFoci, odirname: str, seq_window_size: int
-) -> None:
-    breakpoint_sequences = extract_breakpoint_sequences(
-        maximal_foci, genome_fname, seq_window_size
-    )
-    breakpoint_fasta = odirname / "breakpoint_sequences.fasta"
-    with breakpoint_fasta.open("w") as ofstream:
-        for breakpoint_sequence in breakpoint_sequences:
-            ofstream.write(str(breakpoint_sequence))
 
 
 def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
@@ -331,6 +290,7 @@ def main(
         maximal_foci += run_breakpoint_detection(detection_params, seq_regions, threads)
 
     write_breakpoint_bed(maximal_foci, odirname)
+    seq_window_size = max(seq_window_size, 1)
     write_breakpoint_sequences(genome_fname, maximal_foci, odirname, seq_window_size)
 
 

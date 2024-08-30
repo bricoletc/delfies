@@ -226,6 +226,9 @@ class MaximalFocus:
             self.next_max_value = query_focus_value
 
 
+MaximalFoci = List[MaximalFocus]
+
+
 class FociWindow:
     def __init__(self, focus):
         self.foci = [focus]
