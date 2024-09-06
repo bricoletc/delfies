@@ -23,13 +23,13 @@ cat <output_dir>/breakpoint_locations.bed
 ## Installation
 Using `pip` (or equivalent - poetry, etc.): 
 ```sh
-# Download and install a specific release
-DELFIES_VERSION=0.6.0
-wget "https://github.com/bricoletc/delfies/archive/refs/tags/${DELFIES_VERSION}.tar.gz"
-tar -xf "delfies-${DELFIES_VERSION}.tar.gz
-pip install ./delfies-"${DELFIES_VERSION}"/
+# Install latest release from PyPI
+pip install delfies
 
-# OR clone and install tip of main
+# Or install a specific release from PyPI:
+pip install delfies==0.6.0
+
+# Or clone and install tip of main
 git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
 ```
