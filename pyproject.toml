@@ -16,7 +16,7 @@ pybedtools = "^0.9.1"
 click = "^8.1.7"
 rich-click = "^1.7.3"
 pyfastx = "^2.1.0"
-datasci = {git = "https://github.com/bricoletc/datasci.git"}
+datasci-bricoletc = "^0.0.1"
 edlib = "^1.3.9"
 
 [tool.poetry.group.dev.dependencies]
