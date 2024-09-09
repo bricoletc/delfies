@@ -1,6 +1,8 @@
-![](img/delfies_logo.png)
+<p align="center">
+<img height="175" src="img/delfies_logo.png">
+<h1 align="center"></h1>
+</p>
 
-# Delfies
 
 [![PyPI](https://img.shields.io/pypi/v/delfies)](https://pypi.org/project/delfies/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
