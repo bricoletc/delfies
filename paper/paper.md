@@ -111,7 +111,11 @@ neo-telomeres are formed and maintained, notably cancer biology.
 # Acknowledgements
 
 We acknowledge the many interactions with Lewis Stevens and Pablo Manuel
-Gonzalez de la Rosa at the Wellcome Sanger Institute, which helped foster the
+Gonzalez de la Rosa at the Wellcome Sanger Institute and Marie Delattre at the
+Laboratory of Biology and Modelling of the Cell, which helped foster the
 development of `delfies`.
+
+This work was supported by a grant from the Agence Nationale de la Rercherche: ANR-22-
+CE12-0027.
 
 # References
