@@ -27,30 +27,30 @@ intact genome.
 
 PDE was first documented in 1887 in a parasitic nematode [@Boveri1887], and
 since then various forms of PDE have been found in a wide variety of organisms
-including birds, fish, insects, mammals, crustaceans, other nematodes
-and ciliates [@Dedukh2021; @Drotos2022]. Some species eliminate entire 
-chromosomes (birds, fish, insects, mammals) while others eliminate portions of chromosomes, 
-with or without changes in chromosome number (copepod crustaceans, nematodes, ciliates).
+including birds, fish, insects, mammals, crustaceans, other nematodes and
+ciliates [@Dedukh2021; @Drotos2022]. Some species eliminate entire chromosomes
+(birds, fish, insects, mammals) while others eliminate portions of chromosomes,
+with or without changes in chromosome number (copepod crustaceans, nematodes,
+ciliates).
 
-While of considerable interest, the function of PDE remains largely unknown.
-One of the best-studied clade so far is ciliates, unicellular eukaryotes that
-maintain distinct 'germline'/'somatic' nuclei within a single cellular
-membrane. Ciliates eliminate both small sequences that are spliced out of the
-genome, called internal eliminated sequences (IESs), and large fragments of
-chromosomes, including at the subtelomeres. In ciliates, this chromosome fragmentation has
-received less attention, both genomically and functionally.
+In species that eliminate portions of chromsomes, two main types of elimination
+have been documented. The first is the elimination of small sequences (~100s of
+bp) called 'IESs', by a splicing process: a double-strand break is produced at
+each IES extremity, the IES is excised, and the two extremities are rejoined.
+This form has so far been documented in ciliates only, a clade of unicellular
+eukaryotes with 'germline' and 'somatic' nuclei inside a single cell membrane.
+The second type is the elimination of large fragments of chromosomes (up to
+several Mbps): a single double-strand break is produced, one side is eliminated
+while the other is retained, and telomeres allow the newly-retained
+'mini-chromosome' to be maintained in the soma. This form occurs in ciliates,
+nematodes, and probably also in copepods. While IES elimination in ciliates has
+been well-characterised genomically and functionally, chromosome fragmentation
+with neo-telomere addition have not.
 
-Copepods and nematodes also eliminate large fragments of DNA, including at the
-subtelomeres. The main commonality so far between these clades and ciliates is the
-elimination of all telomeric sequences during PDE, followed by the addition of
-new telomeres at the extremities of newly-maintained mini-chromosomes in
-somatic cells.
-
-Here, we present a tool called `delfies` to systematically detect these sites
-of chromosome breakage and neo-telomere addition. `delfies` enables rapidly and
-comprehensively mapping the locations of elimination breakpoints in all
-species in which this form of PDE occurs.
-
+Here, we present a tool called `delfies` to systematically detect sites of
+chromosome breakage and neo-telomere addition. `delfies` enables rapidly and
+comprehensively mapping the locations of elimination breakpoints in all species
+in which this form of DNA elimination occurs.
 
 # Statement of need
 
@@ -67,14 +67,15 @@ breakage sites with telomere addition called MILTEL [@bleties:2021].
 `delfies` was developed when studying PDE in nematodes, and presents several
 new features compared to MILTEL. Both tools output the locations of breakpoints
 in standard bioinformatics formats: MILTEL in a GFF3-formatted file, `delfies`
-in a BED-formatted file. While MILTEL expresses breakpoints in isolation,
-`delfies` can merge multiple breakpoints occurring in close proximity in a
-user-configurable way. This allows for more or less sharply-defined
-breakpoints, a feature that is known to vary in both ciliates and nematodes
-[@Betermier2023; @GonzalezdelaRosa2020; @Dockendorff2022; @Rey2023;
-@Estrem2023]. `delfies` also outputs the strand of breakpoints in the
-appropriate BED column, enabling subsequently classifying the genome into
-'retained' and 'eliminated' compartments (details in the software repository). 
+in a BED-formatted file. While MILTEL expresses each putative breakpoint in
+isolation, `delfies` can merge multiple breakpoints occurring in close
+proximity in a user-configurable way. This allows for directly detecting more
+or less sharply-defined breakpoints, a feature that is known to vary in both
+ciliates and nematodes [@Betermier2023; @GonzalezdelaRosa2020;
+@Dockendorff2022; @Rey2023; @Estrem2023]. `delfies` also outputs the strand of
+breakpoints in the appropriate BED column, enabling subsequently classifying
+the genome into 'retained' and 'eliminated' compartments (details in the
+software repository). 
 
 `delfies` also explicitly models and outputs two types of breakpoints: in the
 first, the assembled genome is 'complete' and reads from the 'reduced' genome
@@ -100,15 +101,19 @@ For further speed, `delfies` also supports multi-threading.
 `delfies` has already been used to successfully characterise the breakpoints,
 motifs, and retained/eliminated genomes of several nematode genera in the
 family *Rhabditidae*, supporting two upcoming publications (Letcher *et al.*
-and Stevens *et al.*, in preparation). As more and more genomic data from
-species undergoing Programmed DNA Elimination become available, we anticipate
-this tool can be of broad use to this research community, as well as in novel
-fields of research in which modified chromosomes are formed and maintained,
-such as cancer biology.
+and Stevens *et al.*, in preparation). We anticipate this tool can be of broad
+use to researchers studying Programmed DNA Elimination, to characterise species
+known to eliminate but also to discover or screen for elimination in new
+species, especially as long-read and high-coverage sequencing data (of both
+germline and somatic cells) of eularyotic species become increasingly available
+[@DTOL2022; EBGP2022]. `delfies` could also become useful in other fields of
+research in which modified chromosomes with neo-telomeres are formed and
+maintained, such as cancer biology.
 
 # Acknowledgements
 
-We acknowledge the many interactions with Lewis Stevens and Pablo Manuel Gonzalez de la Rosa 
-at the Wellcome Sanger Institute, which helped foster the development of `delfies`.
+We acknowledge the many interactions with Lewis Stevens and Pablo Manuel
+Gonzalez de la Rosa at the Wellcome Sanger Institute, which helped foster the
+development of `delfies`.
 
 # References
