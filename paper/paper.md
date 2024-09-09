@@ -37,15 +37,13 @@ In species that eliminate portions of chromsomes, two main types of elimination
 have been documented. The first is the elimination of small sequences (~100s of
 bp) called 'IESs', by a splicing process: a double-strand break is produced at
 each IES extremity, the IES is excised, and the two extremities are rejoined.
-This form has so far been documented in ciliates only, a clade of unicellular
-eukaryotes with 'germline' and 'somatic' nuclei inside a single cell membrane.
-The second type is the elimination of large fragments of chromosomes (up to
-several Mbps): a single double-strand break is produced, one side is eliminated
-while the other is retained, and telomeres allow the newly-retained
-'mini-chromosome' to be maintained in the soma. This form occurs in ciliates,
-nematodes, and probably also in copepods. While IES elimination in ciliates has
-been well-characterised genomically and functionally, chromosome fragmentation
-with neo-telomere addition have not.
+This form has so far been documented in ciliates only. The second type is the
+elimination of large fragments of chromosomes (up to >1Mbp): a single
+double-strand break is produced, one side is eliminated, and telomeres on the
+retained side allow the new 'mini-chromosome' to be maintained in the soma.
+This form occurs in ciliates, nematodes, and probably also in copepods. While
+IES elimination in ciliates has been well-characterised genomically and
+functionally, chromosome fragmentation with neo-telomere addition has not.
 
 Here, we present a tool called `delfies` to systematically detect sites of
 chromosome breakage and neo-telomere addition. `delfies` enables rapidly and
@@ -106,7 +104,7 @@ use to researchers studying Programmed DNA Elimination, to characterise species
 known to eliminate but also to discover or screen for elimination in new
 species, especially as long-read and high-coverage sequencing data (of both
 germline and somatic cells) of eularyotic species become increasingly available
-[@DTOL2022; EBGP2022]. `delfies` could also become useful in other fields of
+[@DTOL2022; @EBGP2022]. `delfies` could also become useful in other fields of
 research in which modified chromosomes with neo-telomeres are formed and
 maintained, such as cancer biology.
 
