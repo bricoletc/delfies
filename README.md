@@ -1,4 +1,9 @@
+![](img/delfies_logo.png)
+
 # Delfies
+
+[![PyPI](https://img.shields.io/pypi/v/delfies)](https://pypi.org/project/delfies/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 `delfies` is a tool for the detection of DNA breakpoints with de-novo telomere addition.
 
