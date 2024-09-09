@@ -33,7 +33,7 @@ ciliates [@Dedukh2021; @Drotos2022]. Some species eliminate entire chromosomes
 with or without changes in chromosome number (copepod crustaceans, nematodes,
 ciliates).
 
-In species that eliminate portions of chromsomes, two main types of elimination
+In species that eliminate portions of chromosomes, two main types of elimination
 have been documented. The first is the elimination of small sequences (~100s of
 bp) called 'IESs', by a splicing process: a double-strand break is produced at
 each IES extremity, the IES is excised, and the two extremities are rejoined.
@@ -102,11 +102,11 @@ family *Rhabditidae*, supporting two upcoming publications (Letcher *et al.*
 and Stevens *et al.*, in preparation). We anticipate this tool can be of broad
 use to researchers studying Programmed DNA Elimination, to characterise species
 known to eliminate but also to discover or screen for elimination in new
-species, especially as long-read and high-coverage sequencing data (of both
-germline and somatic cells) of eularyotic species become increasingly available
-[@DTOL2022; @EBGP2022]. `delfies` could also become useful in other fields of
-research in which modified chromosomes with neo-telomeres are formed and
-maintained, such as cancer biology.
+species. This is especially relevant as new long-read and high-coverage
+sequencing data (of both germline and somatic cells) of eukaryotic species
+become increasingly available [@DTOL2022; @EBGP2022]. `delfies` may also be
+useful in other fields of research in which modified chromosomes with
+neo-telomeres are formed and maintained, notably cancer biology.
 
 # Acknowledgements
 
