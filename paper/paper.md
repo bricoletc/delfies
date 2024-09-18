@@ -18,7 +18,7 @@ bibliography: paper.bib
 
 # Summary
 
-In multicellular organisms, cells generally carry an identical genome,
+In multicellular organisms, all cells generally carry an identical genome,
 faithfully transmitted through cell divisions from the founding zygote. This is not the
 case in species that undergo Programmed DNA Elimination (PDE), the systematic
 destruction of portions of the genome in somatic cells during early development.
@@ -33,17 +33,19 @@ ciliates [@Dedukh2021; @Drotos2022]. Some species eliminate entire chromosomes
 with or without changes in chromosome number (copepod crustaceans, nematodes,
 ciliates).
 
-In species that eliminate portions of chromosomes, two main types of elimination
-have been documented. The first is the elimination of small sequences (~100s of
-bp) called 'IESs', by a splicing process: a double-strand break is produced at
-each IES extremity, the IES is excised, and the two extremities are rejoined.
-This form has so far been documented in ciliates only. The second type is the
-elimination of large fragments of chromosomes (up to >1Mbp): a single
-double-strand break is produced, one side is eliminated, and telomeres on the
-retained side allow the new 'mini-chromosome' to be maintained in the soma.
-This form occurs in ciliates, nematodes, and probably also in copepods. While
-IES elimination in ciliates has been well-characterised genomically and
-functionally, chromosome fragmentation with neo-telomere addition has not.
+In species that eliminate portions of chromosomes, two main types of
+elimination have been documented. The first is the elimination of small
+sequences (~100s of bp) called 'IESs', by a splicing process: a double-strand
+break is produced at each IES extremity, the IES is excised, and the two
+extremities are rejoined. This form has so far been documented in ciliates
+only. The second type is the elimination of large fragments of chromosomes (up
+to >1Mbp): a single double-strand break is produced, one side is eliminated,
+and telomeres on the retained side allow the new 'mini-chromosome' to be
+maintained in the soma. This form occurs in ciliates [@Yu1991], nematodes
+[@GonzalezdelaRosa2020, @Rey2023], and probably also in copepods
+[@Beermann1977]. While IES elimination in ciliates has been well-characterised
+genomically and functionally, chromosome fragmentation with neo-telomere
+addition has not.
 
 Here, we present a tool called `delfies` to systematically detect sites of
 chromosome breakage and neo-telomere addition. `delfies` enables rapidly and
@@ -70,7 +72,7 @@ isolation, `delfies` can merge multiple breakpoints occurring in close
 proximity in a user-configurable way. This allows for directly detecting more
 or less sharply-defined breakpoints, a feature that is known to vary in both
 ciliates and nematodes [@Betermier2023; @GonzalezdelaRosa2020;
-@Dockendorff2022; @Rey2023; @Estrem2023]. `delfies` also outputs the strand of
+@Dockendorff2022; @Estrem2023]. `delfies` also outputs the strand of
 breakpoints in the appropriate BED column, enabling subsequently classifying
 the genome into 'retained' and 'eliminated' compartments (details in the
 software repository). 
