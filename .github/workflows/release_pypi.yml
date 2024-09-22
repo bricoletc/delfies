@@ -19,6 +19,8 @@ jobs:
       uses: snok/install-poetry@v1
     - name: Check the project installs and runs
       run:  make install-ci
+    - name: Check the tests pass
+      run:  make test
     - name: Build a binary wheel and a source tarball
       run:  make build
     - name: Store the distribution packages
