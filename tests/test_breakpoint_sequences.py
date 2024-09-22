@@ -5,7 +5,7 @@ from tests import ClassWithTempFasta
 
 
 class TestExtractBreakpointSequences(ClassWithTempFasta):
-    default_reference = f">scaffold_1\nACGTGATACA\n"
+    default_reference = ">scaffold_1\nACGTGATACA\n"
     tents = setup_tents()
     default_max_focus = MaximalFocus(Orientation.forward, 0, 0, 0, (0, 0), None)
     breakpoint_location = tents.new()

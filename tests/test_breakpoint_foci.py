@@ -108,7 +108,6 @@ class TestFociWindow:
 
     def test_inclusion_with_tolerance(self, breakpoint_focus, focus_window):
         fw_start = focus_window.foci[0].start
-        fw_end = focus_window.foci[0].end
         breakpoint_focus.start = fw_start - 2
         breakpoint_focus.end = fw_start - 1
         assert not focus_window.includes(breakpoint_focus, tolerance=0)

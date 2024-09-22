@@ -20,14 +20,12 @@ class TestSequenceMutations:
     def test_not_a_nucleotide_fails(self):
         seq_to_mutate = "PPDD"
         with pytest.raises(ValueError):
-            mutated_seq = randomly_substitute(seq_to_mutate)
+            randomly_substitute(seq_to_mutate)
 
     def test_too_many_mutations_fails(self):
         seq_to_mutate = "AATT"
         with pytest.raises(ValueError):
-            mutated_seq = randomly_substitute(
-                seq_to_mutate, num_mutations=len(seq_to_mutate) + 1
-            )
+            randomly_substitute(seq_to_mutate, num_mutations=len(seq_to_mutate) + 1)
 
     def test_various_numbers_of_mutations(self):
         seq_to_mutate = "AATTCCGG"

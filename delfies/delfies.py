@@ -165,8 +165,8 @@ def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
     "--clustering_threshold",
     type=int,
     default=5,
-    help=f"Any identified breakpoints within this value (in bp) of each other will be merged. "
-    f"A larger threshold allows for more imprecise breakpoint locations",
+    help="Any identified breakpoints within this value (in bp) of each other will be merged. "
+    "A larger threshold allows for more imprecise breakpoint locations",
     show_default=True,
 )
 @click.option(
