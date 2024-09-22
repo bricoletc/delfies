@@ -25,9 +25,17 @@ delfies <genome>.fa.gz <aligned_reads>.bam <output_dir>
 cat <output_dir>/breakpoint_locations.bed
 ```
 
-# <a name="manual"></a> User Manual
+# Table of Contents
 
-## Installation
+- [Installation[(#installation)
+- [User Manual](#manual)
+    - [CLI options](#CLI)
+    - [Outputs](#outputs)
+    - [Applications](#applications)
+    - [Detailed documentation](#detailed_docs)
+- [Contributing](#contributing)
+
+# Installation
 Using `pip` (or equivalent - poetry, etc.): 
 ```sh
 # Install latest release from PyPI
@@ -41,7 +49,9 @@ git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
 ```
 
-## CLI options
+# <a name="manual"></a> User Manual
+
+## <a name="CLI"></a> CLI options
 
 ```sh
 delfies --help
@@ -68,7 +78,10 @@ The two main outputs of `delfies` are:
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
    of identified elimination breakpoints
 
-For more details on outputs, see [detailed docs][detailed_docs].
+
+**I highly recommend visualising your results**! E.g., by loading your input
+fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in
+[IGV](https://github.com/igvteam/igv).
 
 ## Applications
 
@@ -77,9 +90,13 @@ For more details on outputs, see [detailed docs][detailed_docs].
   The 'strand' of breakpoints is especially useful for this: see [detailed docs][detailed_docs].
 * The BED output also enables assembling past somatic telomeres: for how to do this, see [detailed docs][detailed_docs].
 
-## Visualising your results
+## <a name="detailed_docs"></a> Detailed documentation
 
-**I highly recommend visualising your results**!
-E.g., by loading your input fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in [IGV](https://github.com/igvteam/igv).
+For more details on `delfies`, including outputs and applications, see [detailed_docs][detailed_docs].
+
+# Contributing
+
+Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for how to 
+report issues, request features, or contribute code.
 
 [detailed_docs]: docs/detailed_manual.md
