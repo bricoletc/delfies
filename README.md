@@ -27,7 +27,7 @@ cat <output_dir>/breakpoint_locations.bed
 
 # Table of Contents
 
-- [Installation[(#installation)
+- [Installation](#installation)
 - [User Manual](#manual)
     - [CLI options](#CLI)
     - [Outputs](#outputs)
@@ -96,7 +96,9 @@ For more details on `delfies`, including outputs and applications, see [detailed
 
 # Contributing
 
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for how to 
-report issues, request features, or contribute code.
+Contributions always welcome! 
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for how (reporting issues, requesting
+features, contributing code).
 
 [detailed_docs]: docs/detailed_manual.md
