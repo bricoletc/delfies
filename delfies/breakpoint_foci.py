@@ -35,7 +35,7 @@ class BreakpointDetectionParams:
 
 
 def setup_tents() -> Dict:
-    tents_headers = [
+    tents_header = [
         "contig",
         "start",
         "end",
@@ -43,7 +43,7 @@ def setup_tents() -> Dict:
         "breakpoint_type",
     ] + READ_SUPPORTS
     tents = Tents(
-        headers=tents_headers, required_headers=tents_headers[:5], unset_value=0
+        header=tents_header, required_header=tents_header[:5], unset_value=0
     )
     return tents
 
