@@ -1,7 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain as it_chain
-from tempfile import NamedTemporaryFile
 from typing import Dict, List, Tuple
 
 from datasci import Tent, Tents
@@ -34,7 +33,7 @@ class BreakpointDetectionParams:
     ofname_base: str = None
 
 
-def setup_tents() -> Dict:
+def setup_tents() -> Tents:
     tents_header = [
         "contig",
         "start",
@@ -42,18 +41,8 @@ def setup_tents() -> Dict:
         "read_depth",
         "breakpoint_type",
     ] + READ_SUPPORTS
-    tents = Tents(
-        header=tents_header, required_header=tents_header[:5], unset_value=0
-    )
+    tents = Tents(header=tents_header, required_header=tents_header[:5], unset_value=0)
     return tents
-
-
-def write_tents(ofname_base: str, tents: Tents) -> None:
-    ofpath = NamedTemporaryFile(
-        prefix=f"{ofname_base}_", suffix=".tsv", dir=".", delete=False
-    )
-    with open(ofpath.name, "w") as ofstream:
-        print(tents, file=ofstream)
 
 
 PositionTents = Dict[str, Tent]
@@ -127,7 +116,7 @@ def record_softclips(
 def find_breakpoint_foci_row_based(
     detection_params: BreakpointDetectionParams,
     seq_region: Interval,
-) -> None:
+) -> Tents:
     tents = setup_tents()
     position_tents: PositionTents = {}
     positions_to_commit = set()
@@ -198,7 +187,7 @@ def find_breakpoint_foci_row_based(
                     read_depth=read_depth,
                 )
                 tents.add(new_tent)
-    write_tents(detection_params.ofname_base, tents)
+    return tents
 
 
 #####################

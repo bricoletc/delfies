@@ -1,11 +1,8 @@
 import itertools as it
 import multiprocessing as mp
-import os
-from glob import glob
 from pathlib import Path
 
 import rich_click as click
-from datasci import Tents
 from pybedtools import BedTool
 from pyfastx import Fasta
 from pysam import AlignmentFile
@@ -23,7 +20,6 @@ from delfies.breakpoint_foci import (
     cluster_breakpoint_foci,
     find_breakpoint_foci_row_based,
     setup_tents,
-    write_tents,
 )
 from delfies.breakpoint_sequences import write_breakpoint_sequences
 from delfies.interval_utils import Interval, Intervals
@@ -76,31 +72,19 @@ def run_breakpoint_detection(
     detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
 ) -> MaximalFoci:
     with mp.Pool(processes=threads) as pool:
-        pool.starmap(
+        pooled_results = pool.starmap(
             find_breakpoint_foci_row_based,
             zip(
                 it.repeat(detection_params),
                 seq_regions,
             ),
         )
-    all_files = glob(f"{detection_params.ofname_base}_*.tsv")
-    # If no foci found, write a dummy file just to have the header in the aggregated output tsv
-    if len(all_files) == 0:
-        tents = setup_tents()
-        write_tents(detection_params.ofname_base, tents)
-        all_files = glob(f"{detection_params.ofname_base}_*.tsv")
+    all_foci = setup_tents()
+    for result in pooled_results:
+        all_foci.extend(result)
     foci_tsv = f"{detection_params.ofname_base}.tsv"
     with open(foci_tsv, "w") as ofstream:
-        for i, fname in enumerate(all_files):
-            with open(fname) as infile:
-                if i > 0:
-                    next(infile)  # Skips header
-                for line in infile:
-                    if line != "\n":
-                        ofstream.write(line)
-            os.remove(fname)
-
-    all_foci = Tents.from_tsv(foci_tsv)
+        print(all_foci, file=ofstream)
     clustered_foci = cluster_breakpoint_foci(
         all_foci, tolerance=detection_params.clustering_threshold
     )
