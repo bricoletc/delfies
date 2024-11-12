@@ -70,6 +70,12 @@ class TestReadFiltering:
             pysam_basic_read, FLAGS["PAIRED"] | FLAGS["SUPPLEMENTARY"]
         )
 
+    def test_read_flag_zero_no_matches(self, pysam_basic_read):
+        # Flag of zero == read is mapped in forward orientation
+        # On a read with such a flag, no filtering is applicable
+        pysam_basic_read.flag = 0
+        assert not read_flag_matches(pysam_basic_read, FLAGS["PAIRED"] | FLAGS["UNMAP"])
+
 
 class TestSoftclipDetection:
     def test_read_no_softclips(self, pysam_basic_read):

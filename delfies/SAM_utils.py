@@ -44,7 +44,7 @@ DEFAULT_MIN_MAPQ = 20
 
 
 def read_flag_matches(read: AlignedSegment, filtering_SAM_flag: int) -> bool:
-    return read.flag & filtering_SAM_flag != 0
+    return (read.flag & filtering_SAM_flag) != 0
 
 
 def find_softclip_at_extremity(
