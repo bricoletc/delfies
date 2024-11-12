@@ -5,8 +5,9 @@
 
 
 [![PyPI](https://img.shields.io/pypi/v/delfies)](https://pypi.org/project/delfies/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![status](https://joss.theoj.org/papers/e9a54b5b34327be54050d6796cf9a31b/status.svg)](https://joss.theoj.org/papers/e9a54b5b34327be54050d6796cf9a31b)
+[![codecov](https://codecov.io/github/bricoletc/delfies/graph/badge.svg?token=7GP56CS6NU)](https://codecov.io/github/bricoletc/delfies)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![JOSS paper status](https://joss.theoj.org/papers/e9a54b5b34327be54050d6796cf9a31b/status.svg)](https://joss.theoj.org/papers/e9a54b5b34327be54050d6796cf9a31b)
 
 `delfies` is a tool for the detection of DNA breakpoints with de-novo telomere addition.
 
@@ -68,7 +69,7 @@ delfies --help
       If you're unsure, I recommend the tool [telomeric-identifier](https://github.com/tolkit/telomeric-identifier) for finding out.
 * [Aligned reads]
     * To analyse confidently-aligned reads only, you can filter reads by MAPQ (`--min_mapq`) and by bitwise flag (`--read_filter_flag`).
-    * You can tolerate more or less mutations in the telomere sequences (and in the reads) using `--telo_max_edit_distance` and `--telo_array_size`.
+    * You can tolerate more or less mutations in the assembly telomeres (and in the sequencing reads) using `--telo_max_edit_distance` and `--telo_array_size`.
 
 ## Outputs
 
