@@ -10,6 +10,7 @@ dist
 
 ## Test coverage
 .coverage
+coverage.xml
 htmlcov/
 
 ### Python template

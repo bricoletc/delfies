@@ -19,8 +19,12 @@ jobs:
       uses: snok/install-poetry@v1
     - name: Check the project installs and runs
       run:  make install-ci
-    - name: Check the tests pass
-      run:  make test
+    - name: Check the tests pass and generate coverage report
+      run: poetry run pytest --cov-report=xml --cov=delfies --cov-branch
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
     - name: Build a binary wheel and a source tarball
       run:  make build
     - name: Store the distribution packages
@@ -48,3 +52,4 @@ jobs:
         path: dist/
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
+

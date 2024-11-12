@@ -35,3 +35,18 @@ make fmt lint test
 # Or 
 make precommit
 ```
+
+## Writing tests
+
+`delfies` has a set of unit and functional/integration tests in the `tests/` directory.
+If you add new functions or functionalities, please consider adding corresponding tests.
+
+To check what your new tests cover, you can generate a test coverage report by running:
+
+```sh
+cd <delfies_directory>
+poetry install 
+make coverage
+```
+
+This generates a text-file summary and an html report, using [coverage.py](https://github.com/nedbat/coveragepy).
