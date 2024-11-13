@@ -71,22 +71,22 @@ sequencing technologies: see [test run below](#test_run).
 ## Aligners
 
 To produce a SAM/BAM with which you can find breakpoints, you need to use a read
-aligner that reports soft clips (=parts of a reads that are not aligned to the
-reference). Both `bowtie2` (in `--local` mode) and `minimap2` (by default) do this; 
-use `minimap2` for long reads (>300bp), with the appropriate preset (e.g. `-x map-ont` 
+aligner that reports soft clips (parts of a reads that are not aligned to the
+reference). Both `bowtie2` (in `--local` mode) and `minimap2` (by default) do this. 
+Use `minimap2` for long reads (>300bp), with the appropriate preset (e.g. `-x map-ont` 
 for Nanopore data).
 
-# <a name="test_run"></a> Test run with real data and expected outputs
+# <a name="test_run"></a> Test run with real data
 
-I provide a subset of publicly-available data for testing `delfies`, consisting
-of a 2kbp of the assembled genome of *Oscheius onirici* and three BAMs,
-obtained by aligning sequencing data from this species produced using Illumina,
-ONT and PacBio technologies to the 2kbp region using `minimap2`. I describe
-these data in detail, and provide all inputs and expected outputs, here:
-https://doi.org/10.5281/zenodo.14101797.
+I provide a processed subset of publicly-available data for testing `delfies`
+here: https://doi.org/10.5281/zenodo.14101797. The data consist of a 2kbp
+region of the assembled genome of *Oscheius onirici* and three alignment BAMs
+from sequencing data produced using Illumina, ONT and PacBio. The data were
+aligned to the 2kbp region using `minimap2`. See the Zenodo link for details on 
+the sequencing data (read lengths, error rates) and public links to the raw data.
 
 You can run `delfies` on the inputs in this archive to make sure it is properly 
-installed and produces the expected outputs as follows:
+installed and produces the expected outputs:
 
 ```sh
 wget https://zenodo.org/records/14101798/files/delfies_zenodo_test_data.tar.gz
