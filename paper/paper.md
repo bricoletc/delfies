@@ -101,16 +101,16 @@ For further speed, `delfies` also supports multi-threading.
 `delfies` has already been used to successfully characterise the breakpoints,
 motifs, and retained/eliminated genomes of several nematode genera in the
 family *Rhabditidae*, supporting two upcoming publications (Letcher *et al.*
-and Stevens *et al.*, in preparation). Before these results are made publicly
-available with those publications, the author has prepared a subset of
-publicly-available data from the nematode *Oscheius onirici*, whose elimination
-breakpoint motif has been previously described [@Estrem2023]. The data are
-available on Zenodo [@ZenodoData2024], and consist of a small genome region
-containing a known single breakpoint and alignment files for reads sequenced
-using three distinct technologies (Illumina NovaSeq, Oxford Nanopore
-Technologies PromethION and Pacific Biosciences Sequel II) and spanning
-a range of average read lengths (151bp to 11.9kbp) and per-base qualities (Q11
-to Q28). `delfies` recovers a single, identical breakpoint across all three datasets.
+and Stevens *et al.*, in preparation). For testing purposes, the author has
+prepared a subset of publicly-available data from the nematode *Oscheius
+onirici*, whose elimination breakpoint motif has been previously described
+[@Estrem2023]. The data are available on Zenodo [@ZenodoData2024], and consist
+of a small genome region containing a known single breakpoint and alignment
+files for reads sequenced using three distinct technologies: Illumina NovaSeq,
+Oxford Nanopore Technologies PromethION and Pacific Biosciences Sequel II. The
+reads span a range of average lengths (151bp to 11.9kbp) and per-base qualities
+(Q11 to Q28). `delfies` recovered a single, identical breakpoint across all
+three datasets.
 
 We anticipate this tool can be of broad use to researchers studying Programmed
 DNA Elimination, to characterise species known to eliminate but also to
