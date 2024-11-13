@@ -27,9 +27,16 @@ delfies <genome>.fa.gz <aligned_reads>.bam <output_dir>
 cat <output_dir>/breakpoint_locations.bed
 ```
 
+For how to obtain a suitable SAM/BAM, see [input data](#input_data), and for 
+downloading a real genome and BAMs for a test run of `delfies`, see [test run](#test_run).
+
 # Table of Contents
 
 - [Installation](#installation)
+- [Input data](#input_data)
+    - [Sequencing technologies](#seq_tech)
+    - [Aligners](#aligners)
+- [Test run with real data](#test_run)
 - [User Manual](#manual)
     - [CLI options](#CLI)
     - [Outputs](#outputs)
@@ -49,6 +56,44 @@ pip install delfies==0.7.0
 # Or clone and install tip of main
 git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
+```
+
+# <a name="input_data"></a> Input data and test run
+
+## <a name="seq_tech"></a> Sequencing technologies
+
+`delfies` is designed to work with both Illumina short reads and ONT or PacBio
+long reads. Long reads are better for finding breakpoints in more repetitive
+regions of the genome. A high fraction of sequenced bases with a quality \>Q20
+is desirable (e.g. \>70%). I found `delfies` worked on recent data from all three
+sequencing technologies: see [test run below](#test_run).
+
+## Aligners
+
+To produce a SAM/BAM with which you can find breakpoints, you need to use a read
+aligner that reports soft clips (=parts of a reads that are not aligned to the
+reference). Both `bowtie2` (in `--local` mode) and `minimap2` (by default) do this; 
+use `minimap2` for long reads (>300bp), with the appropriate preset (e.g. `-x map-ont` 
+for Nanopore data).
+
+# <a name="test_run"></a> Test run with real data and expected outputs
+
+I provide a subset of publicly-available data for testing `delfies`, consisting
+of a 2kbp of the assembled genome of *Oscheius onirici* and three BAMs,
+obtained by aligning sequencing data from this species produced using Illumina,
+ONT and PacBio technologies to the 2kbp region using `minimap2`. I describe
+these data in detail, and provide all inputs and expected outputs, here:
+https://doi.org/10.5281/zenodo.14101797.
+
+You can run `delfies` on the inputs in this archive to make sure it is properly 
+installed and produces the expected outputs as follows:
+
+```sh
+wget https://zenodo.org/records/14101798/files/delfies_zenodo_test_data.tar.gz
+tar xf delfies_zenodo_test_data.tar.gz
+# Run delfies here
+# Compare with the expected outputs:
+find delfies_zenodo_test_data -name "*breakpoint_locations.bed" | xargs cat
 ```
 
 # <a name="manual"></a> User Manual
