@@ -78,12 +78,14 @@ for Nanopore data).
 
 # <a name="test_run"></a> Test run with real data
 
-I provide a processed subset of publicly-available data for testing `delfies`
-here: https://doi.org/10.5281/zenodo.14101797. The data consist of a 2kbp
-region of the assembled genome of *Oscheius onirici* and three alignment BAMs
-from sequencing data produced using Illumina, ONT and PacBio. The data were
-aligned to the 2kbp region using `minimap2`. See the Zenodo link for details on 
-the sequencing data (read lengths, error rates) and public links to the raw data.
+I provide a processed subset of publicly-available data here: 
+https://doi.org/10.5281/zenodo.14101797. 
+
+The data consist of a 2kbp region of the assembled genome of *Oscheius onirici*
+and three alignment BAMs from sequencing data produced using Illumina, ONT and
+PacBio. The data were aligned to the 2kbp region using `minimap2`. See the
+Zenodo link for details on the sequencing data (read lengths, error rates) and
+public links to the raw data.
 
 You can run `delfies` on the inputs in this archive to make sure it is properly 
 installed and produces the expected outputs:
