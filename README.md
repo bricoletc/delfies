@@ -34,12 +34,11 @@ downloading a real genome and BAMs for a test run of `delfies`, see [test run](#
 
 - [Installation](#installation)
 - [Input data](#input_data)
-    - [Sequencing technologies](#seq_tech)
-    - [Aligners](#aligners)
 - [Test run with real data](#test_run)
 - [User Manual](#manual)
     - [CLI options](#CLI)
     - [Outputs](#outputs)
+    - [Validation](#validation)
     - [Applications](#applications)
     - [Detailed documentation](#detailed_docs)
 - [Contributing](#contributing)
@@ -58,7 +57,7 @@ git clone https://github.com/bricoletc/delfies/
 pip install ./delfies
 ```
 
-# <a name="input_data"></a> Input data and test run
+# <a name="input_data"></a> Input data
 
 ## <a name="seq_tech"></a> Sequencing technologies
 
@@ -127,7 +126,7 @@ The two main outputs of `delfies` are:
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
    of identified elimination breakpoints
 
-### Validating breakpoints
+## <a name="validation"></a> Validating breakpoints
 
 **I highly recommend visualising your results**! E.g., by loading your input
 fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in
