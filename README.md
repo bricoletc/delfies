@@ -13,7 +13,7 @@
 
 It identifies genomic locations where double-strand breaks have occurred followed by telomere addition.
 It was initially designed and validated for studying the process of Programmed DNA Elimination
-in [nematodes](https://doi.org/10.1016/j.cub.2023.07.058), but should work for other clades and applications too.
+in [nematodes][Meso_paper], but should work for other clades and applications too.
 
 # <a name="started"></a> Getting started
 
@@ -123,14 +123,28 @@ delfies --help
 The two main outputs of `delfies` are:
 
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
-   elimination breakpoints.
+   elimination breakpoints. 
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
    of identified elimination breakpoints
 
+### Validating breakpoints
 
 **I highly recommend visualising your results**! E.g., by loading your input
 fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in
 [IGV](https://github.com/igvteam/igv).
+
+Confident/true breakpoints will typically have:
+
+- Good read support. Note that breakpoints are ordered by read support in the `delfies` 
+  output file `breakpoint_locations.bed`, and you can require a minimum number of 
+  supporting reads using the CLI option `--min_supporting_reads`.
+- A difference in read coverage before and after the breakpoint. The nature of this 
+  difference depends on the ratio between cells with and without the breakpoint. As
+  an example, in organisms that eliminate parts of their genome in the soma, if
+  most sequenced cells are from the soma, expect more reads before the breakpoint 
+  than after it ('before' and 'after' defined relative to the reported breakpoint strand).
+
+Ultimately though, only biological experiments can truly validate identified breakpoints.
 
 ## Applications
 
@@ -151,3 +165,4 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for how (reporting issues, request
 features, contributing code).
 
 [detailed_docs]: docs/detailed_manual.md
+[Meso_paper]: https://doi.org/10.1016/j.cub.2023.07.058
