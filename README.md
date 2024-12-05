@@ -90,9 +90,15 @@ You can run `delfies` on the inputs in this archive to make sure it is properly
 installed and produces the expected outputs:
 
 ```sh
-wget https://zenodo.org/records/14101798/files/delfies_zenodo_test_data.tar.gz
+wget https://zenodo.org/records/14282333/files/delfies_zenodo_test_data.tar.gz
 tar xf delfies_zenodo_test_data.tar.gz
-# Run delfies here
+# Run delfies; for example, having defined genome, bam and odirname variables:
+delfies --threads 16 \
+    --telo_forward_seq TTAGGC \
+    --breakpoint_type all \
+    --min_mapq 20 \
+    --min_supporting_reads 6 \
+    ${genome} ${bam} ${odirname}
 # Compare with the expected outputs:
 find delfies_zenodo_test_data -name "*breakpoint_locations.bed" | xargs cat
 ```
@@ -161,7 +167,8 @@ For more details on `delfies`, including outputs and applications, see [detailed
 Contributions always welcome! 
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for how (reporting issues, requesting
-features, contributing code).
+features, contributing code). This document includes instructions on how to run 
+`delfies`' unit and functional tests.
 
 [detailed_docs]: docs/detailed_manual.md
 [Meso_paper]: https://doi.org/10.1016/j.cub.2023.07.058
