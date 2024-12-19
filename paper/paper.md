@@ -42,7 +42,7 @@ only. The second type is the elimination of large fragments of chromosomes (up
 to >1Mbp): a single double-strand break is produced, one side is eliminated,
 and telomeres on the retained side allow the new 'mini-chromosome' to be
 maintained in the soma. This form occurs in ciliates [@Yu1991], nematodes
-[@GonzalezdelaRosa2020, @Rey2023], and probably also in copepods
+[@GonzalezdelaRosa2020; @Rey2023], and probably also in copepods
 [@Beermann1977]. While IES elimination in ciliates has been well-characterised
 genomically and functionally, chromosome fragmentation with neo-telomere
 addition has not.
@@ -105,7 +105,7 @@ and Stevens *et al.*, in preparation). For testing purposes, the author has
 prepared a subset of publicly-available data from the nematode *Oscheius
 onirici*, whose elimination breakpoint motif has been previously described
 [@Estrem2023]. The data are available on Zenodo [@ZenodoData2024], and consist
-of a small genome region containing a known single breakpoint and alignment
+of a small genome region containing a single elimination breakpoint and alignment
 files for reads sequenced using three distinct technologies: Illumina NovaSeq,
 Oxford Nanopore Technologies PromethION and Pacific Biosciences Sequel II. The
 reads span a range of average lengths (151bp to 11.9kbp) and per-base qualities
@@ -118,7 +118,7 @@ discover or screen for elimination in new species. This is especially relevant
 as new long-read and high-coverage sequencing data (of both germline and
 somatic cells) of eukaryotic species become increasingly available [@DTOL2022;
 @EBGP2022]. `delfies` may also be useful in other fields of research in which
-modified chromosomes with neo-telomeres are formed and maintained, notably
+modified chromosomes with neo-telomeres are formed and maintained, such as
 cancer biology.
 
 # Acknowledgements
