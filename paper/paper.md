@@ -84,7 +84,7 @@ contain telomeres after the breakpoint. In the second, the assembled genome is
 unique non-telomeric sequence. These two types can be treated separately. For
 example, in the case of a reduced assembled genome, reads coming from the
 reduced genome can be specifically depleted at breakpoints and the new read-set
-used to assemble the complete genome (instructions provided in the softare
+used to assemble the complete genome (instructions provided in the software
 repository).
 
 In addition to breakpoint locations, `delfies` extracts and outputs the
