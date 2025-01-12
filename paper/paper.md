@@ -61,7 +61,7 @@ developed and tested, all in the context of ciliates: `parTIES` [@parties:2015],
 detection of IESs only, not sites of chromosome breakage with neo-telomere
 addition, and were primarily designed for short-read sequencing data. `bleTIES`
 was designed to detect and reconstruct IESs in the context of
-long-read sequencing data, and also includes a module for detecting chomosome
+long-read sequencing data, and also includes a module for detecting chromosome
 breakage sites with telomere addition called MILTEL [@bleties:2021].
 
 `delfies` was developed when studying PDE in nematodes, and presents several
