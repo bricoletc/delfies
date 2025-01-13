@@ -1,5 +1,5 @@
 ---
-title: '`delfies`: a Python package for the detection of DNA breakpoints with neo-telomere addition'
+title: 'delfies: a Python package for the detection of DNA breakpoints with neo-telomere addition'
 tags:
   - Python
   - Bioinformatics
