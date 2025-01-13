@@ -1,0 +1,28 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Letcher
+  given-names: Brice
+  orcid: "https://orcid.org/0000-0002-8921-6005"
+doi: 10.5281/zenodo.14526258
+message: If you use this software in your own work, please cite the associated article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Letcher
+    given-names: Brice
+    orcid: "https://orcid.org/0000-0002-8921-6005"
+  date-published: 2025-01-12
+  doi: 10.21105/joss.07385
+  issn: 2475-9066
+  issue: 105
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 7385
+  title: "delfies: a Python package for the detection of DNA breakpoints
+    with neo-telomere addition"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.07385"
+  volume: 10
+title: "delfies: a Python package for the detection of DNA breakpoints
+  with neo-telomere addition"
