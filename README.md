@@ -15,6 +15,10 @@ It identifies genomic locations where double-strand breaks have occurred followe
 It was initially designed and validated for studying the process of Programmed DNA Elimination
 in [nematodes][Meso_paper], but should work for other clades and applications too.
 
+If you use `delfies` in your work, please cite as:
+
+> Letcher, B., (2025). delfies: a Python package for the detection of DNA breakpoints with neo-telomere addition. Journal of Open Source Software, 10(105), 7385, https://doi.org/10.21105/joss.07385
+
 # <a name="started"></a> Getting started
 
 `delfies` takes as input a genome fasta (gzipped supported) and an indexed SAM/BAM of 
