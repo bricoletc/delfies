@@ -9,14 +9,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![JOSS paper status](https://joss.theoj.org/papers/e9a54b5b34327be54050d6796cf9a31b/status.svg)](https://joss.theoj.org/papers/e9a54b5b34327be54050d6796cf9a31b)
 
-`delfies` is a tool for the detection of DNA breakpoints with de-novo telomere addition.
+`delfies` is a tool that identifies genomic locations where double-strand
+breaks have occurred followed by telomere addition. It was initially designed
+and validated for studying the process of **Programmed DNA Elimination** in
+[nematodes][Meso_paper], but should work for other clades and applications too.
 
-It identifies genomic locations where double-strand breaks have occurred followed by telomere addition.
-It was initially designed and validated for studying the process of Programmed DNA Elimination
-in [nematodes][Meso_paper], but should work for other clades and applications too.
-
-If you use `delfies` in your work, please cite as:
-
+For details on rationale or to credit the tool, please read/cite the associated paper:
 > Letcher, B., (2025). delfies: a Python package for the detection of DNA breakpoints with neo-telomere addition. Journal of Open Source Software, 10(105), 7385, https://doi.org/10.21105/joss.07385
 
 # <a name="started"></a> Getting started
