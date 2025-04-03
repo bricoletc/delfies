@@ -6,13 +6,13 @@ from delfies.breakpoint_foci import (
     MaximalFocus,
     Orientation,
     cluster_breakpoint_foci,
-    setup_tents,
+    setup_breakpoint_tents,
 )
 
 
 @pytest.fixture
 def breakpoint_focus():
-    tents = setup_tents()
+    tents = setup_breakpoint_tents()
     new_tent = tents.new()
     new_tent.update(contig="test_contig", start=2, end=200)
     new_tent[f"{READ_SUPPORTS[0]}"] = 15
@@ -22,7 +22,7 @@ def breakpoint_focus():
 
 @pytest.fixture
 def multiple_breakpoint_foci(breakpoint_focus):
-    tents = setup_tents()
+    tents = setup_breakpoint_tents()
     tents.add(breakpoint_focus)
     new_tent = tents.new()
     new_tent.update(contig="test_contig", start=0, end=202)
@@ -37,7 +37,7 @@ def multiple_breakpoint_foci(breakpoint_focus):
 
 @pytest.fixture
 def focus_window():
-    tents = setup_tents()
+    tents = setup_breakpoint_tents()
     new_tent = tents.new()
     new_tent.update(start=205, end=210)
     new_tent[f"{READ_SUPPORTS[0]}"] = 2

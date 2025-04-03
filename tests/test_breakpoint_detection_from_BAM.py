@@ -11,7 +11,7 @@ from pysam import qualitystring_to_array
 from delfies import BreakpointType
 from delfies.breakpoint_foci import (
     BreakpointDetectionParams,
-    find_breakpoint_foci_row_based,
+    find_breakpoint_foci,
 )
 from delfies.interval_utils import Interval
 from delfies.SAM_utils import DEFAULT_MIN_MAPQ, DEFAULT_READ_FILTER_FLAG
@@ -136,7 +136,7 @@ def detection_params():
 
 def test_forward_breakpoint_S2G(read_generator, genome_interval, detection_params):
     detection_params.bam_fname = read_generator.write_BAM()
-    foci = find_breakpoint_foci_row_based(detection_params, genome_interval)
+    foci = find_breakpoint_foci(detection_params, genome_interval)
     filtered_foci = [
         elem for elem in foci if elem.start == EXPECTED_BREAKPOINT_POSITION
     ]

@@ -18,8 +18,8 @@ from delfies.breakpoint_foci import (
     BreakpointDetectionParams,
     MaximalFoci,
     cluster_breakpoint_foci,
-    find_breakpoint_foci_row_based,
-    setup_tents,
+    find_breakpoint_foci,
+    setup_breakpoint_tents,
 )
 from delfies.breakpoint_sequences import write_breakpoint_sequences
 from delfies.interval_utils import Interval, Intervals
@@ -73,13 +73,13 @@ def run_breakpoint_detection(
 ) -> MaximalFoci:
     with mp.Pool(processes=threads) as pool:
         pooled_results = pool.starmap(
-            find_breakpoint_foci_row_based,
+            find_breakpoint_foci,
             zip(
                 it.repeat(detection_params),
                 seq_regions,
             ),
         )
-    all_foci = setup_tents()
+    all_foci = setup_breakpoint_tents()
     for result in pooled_results:
         all_foci.extend(result)
     foci_tsv = f"{detection_params.ofname_base}.tsv"

@@ -1,4 +1,4 @@
-from delfies.breakpoint_foci import MaximalFocus, setup_tents
+from delfies.breakpoint_foci import MaximalFocus, setup_breakpoint_tents
 from delfies.breakpoint_sequences import extract_breakpoint_sequences
 from delfies.seq_utils import Orientation
 from tests import ClassWithTempFasta
@@ -6,7 +6,7 @@ from tests import ClassWithTempFasta
 
 class TestExtractBreakpointSequences(ClassWithTempFasta):
     default_reference = ">scaffold_1\nACGTGATACA\n"
-    tents = setup_tents()
+    tents = setup_breakpoint_tents()
     default_max_focus = MaximalFocus(Orientation.forward, 0, 0, 0, (0, 0), None)
     breakpoint_location = tents.new()
     breakpoint_location.update(contig="scaffold_1", start=3)

@@ -33,7 +33,7 @@ class BreakpointDetectionParams:
     ofname_base: str = None
 
 
-def setup_tents() -> Tents:
+def setup_breakpoint_tents() -> Tents:
     tents_header = [
         "contig",
         "start",
@@ -43,9 +43,6 @@ def setup_tents() -> Tents:
     ] + READ_SUPPORTS
     tents = Tents(header=tents_header, required_header=tents_header[:5], unset_value=0)
     return tents
-
-
-PositionTents = Dict[str, Tent]
 
 
 ####################
@@ -60,8 +57,8 @@ def focus_has_enough_support(focus_tent, min_support: int) -> bool:
 
 def record_softclips(
     aligned_read: AlignedSegment,
-    tents: Tents,
-    position_tents: PositionTents,
+    breakpoint_foci: Tents,
+    breakpoint_foci_positions,
     detection_params: BreakpointDetectionParams,
     seq_region: Interval,
 ) -> None:
@@ -99,10 +96,10 @@ def record_softclips(
         pos_to_commit = softclipped_read.sc_ref
         ref_name = aligned_read.reference_name
         match_tent_key = f"{ref_name}{ID_DELIM}{pos_to_commit}"
-        if match_tent_key in position_tents:
-            position_tents[match_tent_key][read_support] += 1
+        if match_tent_key in breakpoint_foci_positions:
+            breakpoint_foci_positions[match_tent_key][read_support] += 1
         else:
-            new_tent = tents.new()
+            new_tent = breakpoint_foci.new()
             new_tent.update(
                 contig=ref_name,
                 start=pos_to_commit,
@@ -110,16 +107,15 @@ def record_softclips(
                 breakpoint_type=str(detection_params.breakpoint_type),
             )
             new_tent[read_support] += 1
-            position_tents[match_tent_key] = new_tent
+            breakpoint_foci_positions[match_tent_key] = new_tent
 
 
-def find_breakpoint_foci_row_based(
+def find_breakpoint_foci(
     detection_params: BreakpointDetectionParams,
     seq_region: Interval,
 ) -> Tents:
-    tents = setup_tents()
-    position_tents: PositionTents = {}
-    positions_to_commit = set()
+    breakpoint_foci = setup_breakpoint_tents()
+    breakpoint_foci_positions = {}
     contig_name = seq_region.name
     if seq_region.has_coordinates():
         fetch_args = dict(
@@ -135,32 +131,58 @@ def find_breakpoint_foci_row_based(
             continue
         record_softclips(
             aligned_read,
-            tents,
-            position_tents,
+            breakpoint_foci,
+            breakpoint_foci_positions,
             detection_params,
             seq_region,
         )
-    # Filter breakpoint foci based on support
-    filtered_position_tents = {}
-    for match_key, focus_tent in position_tents.items():
-        if focus_has_enough_support(focus_tent, detection_params.min_supporting_reads):
-            filtered_position_tents[match_key] = focus_tent
-            # I commit a few positions before and after `pos_to_commit` so that
-            # users can assess changes in coverage in the breakpoint foci output tsv
-            committed_position = focus_tent["start"]
-            positions_to_commit.update(
-                range(committed_position - 2, committed_position + 3)
-            )
-    del position_tents
+    # Filter for minimum support
+    breakpoint_foci_positions = {
+        key: val
+        for key, val in breakpoint_foci_positions.items()
+        if focus_has_enough_support(val, detection_params.min_supporting_reads)
+    }
+    # Expand to a few positions before and after putative breakpoints: allows users to
+    # assess changes in coverage around breakpoints (using the corresponding output tsv)
+    positions_to_commit = set()
+    for match_key, focus_tent in breakpoint_foci_positions.items():
+        committed_position = focus_tent["start"]
+        positions_to_commit.update(
+            range(committed_position - 2, committed_position + 3)
+        )
+    record_read_depth_at_breakpoint_foci(
+        positions_to_commit,
+        breakpoint_foci_positions,
+        contig_name,
+        breakpoint_foci,
+        bam_fstream,
+        detection_params,
+    )
+    return breakpoint_foci
 
-    # Record read depth at breakpoint foci
+
+def record_read_depth_at_breakpoint_foci(
+    positions_to_commit,
+    breakpoint_foci_positions,
+    contig_name,
+    breakpoint_foci,
+    bam_fstream,
+    detection_params,
+):
+    """
+    Adds read depth at each position in :positions_to_commit:, 
+    using pysam 'pileup'.
+    Special cases: 
+        - When a breakpoint occurs at first position of a contig, 'pileup' will not 
+          record any read depth as the breakpoint position is set to -1. 
+          So we manually commit that position to :breakpoint_foci: to ensure it is output.
+        - [TODO] When a breakpoint occurs at last position of a contig
+    """
     for start, end in get_contiguous_ranges(positions_to_commit):
-        # Special case: sometimes sotfclipped telomere arrays extend 5' from the first position of a contig/scaffold.
         if start < 0:
             negative_tent_key = f"{contig_name}{ID_DELIM}-1"
-            if negative_tent_key in filtered_position_tents:
-                tents.add(filtered_position_tents[negative_tent_key])
-                filtered_position_tents.pop(negative_tent_key)
+            if negative_tent_key in breakpoint_foci_positions:
+                breakpoint_foci.add(breakpoint_foci_positions[negative_tent_key])
         # +1 for `end` because `end` needs to be exclusive in pysam `pileup`
         pileup_args = dict(
             contig=contig_name,
@@ -175,19 +197,18 @@ def find_breakpoint_foci_row_based(
             read_depth = pileup_column.nsegments
             ref_pos = pileup_column.reference_pos
             tent_key = f"{contig_name}{ID_DELIM}{ref_pos}"
-            if tent_key in filtered_position_tents:
-                filtered_position_tents[tent_key]["read_depth"] = read_depth
-                tents.add(filtered_position_tents[tent_key])
+            if tent_key in breakpoint_foci_positions:
+                breakpoint_foci_positions[tent_key]["read_depth"] = read_depth
+                breakpoint_foci.add(breakpoint_foci_positions[tent_key])
             else:
-                new_tent = tents.new()
+                new_tent = breakpoint_foci.new()
                 new_tent.update(
                     contig=contig_name,
                     start=ref_pos,
                     end=ref_pos + 1,
                     read_depth=read_depth,
                 )
-                tents.add(new_tent)
-    return tents
+                breakpoint_foci.add(new_tent)
 
 
 #####################
