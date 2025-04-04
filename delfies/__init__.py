@@ -1,5 +1,6 @@
 from enum import Enum
 from importlib import metadata
+from dataclasses import dataclass
 
 __version__ = metadata.version("delfies")
 
@@ -25,3 +26,17 @@ class BreakpointType(Enum):
 
 
 all_breakpoint_types = list(BreakpointType)
+
+
+@dataclass
+class BreakpointDetectionParams:
+    bam_fname: str
+    telomere_seqs: dict
+    telo_array_size: int
+    max_edit_distance: int
+    clustering_threshold: int
+    min_mapq: int
+    read_filter_flag: int
+    min_supporting_reads: int
+    breakpoint_type: str = ""
+    ofname_base: str = None

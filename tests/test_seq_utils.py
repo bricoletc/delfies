@@ -53,118 +53,128 @@ def test_cyclic_shifts():
     assert result == expected_shifts
 
 
-class TestFindOccurrencesInGenome(ClassWithTempFasta):
-    default_chrom_name = "chr1"
-    default_query = "TTAGGC"
-    default_query_revcomp_array = rev_comp(default_query) * 9
-    len_default_query_revcomp_array = len(default_query_revcomp_array)
-    default_reference = (
-        f">{default_chrom_name}\n{default_query_revcomp_array}{default_query * 10}\n"
-    )
-    default_search_regions = [Interval(default_chrom_name)]
+class TestFindOccurrencesInGenomePerfectTeloArrays(ClassWithTempFasta):
+    chrom_name = "chr1"
+    telo_unit = "TTAGGC"
+    default_query_array = telo_unit * 10
+    telo_array = f"{rev_comp(default_query_array)}TT{default_query_array}"
+    telo_array_record = f">{chrom_name}\n{telo_array}\n"
+    search_region = [Interval(chrom_name)]
+    targeted_region = [Interval(chrom_name, 0, len(default_query_array))]
 
     def test_find_all_occs_no_hits(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.telo_array_record)
         result = find_all_occurrences_in_genome(
-            "AATTTTTTAAA", fasta, self.default_search_regions, interval_window_size=0
+            "AATTTTTTAAA", fasta, self.search_region, interval_window_size=0
         )
         assert result == []
 
     def test_find_all_occs_hits_whole_chrom(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.telo_array_record)
 
-        # Forward only hits
         result = find_all_occurrences_in_genome(
-            self.default_query * 10,
+            self.default_query_array,
             fasta,
-            self.default_search_regions,
+            self.search_region,
             interval_window_size=0,
         )
-        expected_forward_start = self.len_default_query_revcomp_array
         expected = [
+            # Forward hit
             Interval(
-                self.default_chrom_name, expected_forward_start, expected_forward_start
-            )
-        ]
-        assert result == expected
-
-        # Forward and reverse hits
-        result = find_all_occurrences_in_genome(
-            self.default_query * 9,
-            fasta,
-            self.default_search_regions,
-            interval_window_size=0,
-        )
-        expected_reverse_start = self.len_default_query_revcomp_array - 1
-        expected = [
-            Interval(
-                self.default_chrom_name, expected_forward_start, expected_forward_start
+                self.chrom_name,
+                len(self.default_query_array) + 2,
+                len(self.telo_array) - 1,
             ),
-            Interval(
-                self.default_chrom_name, expected_reverse_start, expected_reverse_start
-            ),
+            # Reverse hit
+            Interval(self.chrom_name, 0, len(self.default_query_array) - 1),
         ]
         assert result == expected
 
     def test_find_all_occs_hits_in_region(self):
-        region_start = self.len_default_query_revcomp_array
-        search_regions = [
-            Interval(
-                self.default_chrom_name,
-                start=region_start,
-                end=region_start + len(self.default_query),
-            )
-        ]
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.telo_array_record)
         result = find_all_occurrences_in_genome(
-            self.default_query, fasta, search_regions, interval_window_size=0
-        )
-        expected = [Interval(self.default_chrom_name, region_start, region_start)]
-        assert result == expected
-
-    def test_find_all_occs_hits_with_window_inside_genome(self):
-        region_start = self.len_default_query_revcomp_array
-        search_regions = [
-            Interval(
-                self.default_chrom_name,
-                start=region_start,
-                end=region_start + len(self.default_query),
-            )
-        ]
-        fasta = self.make_fasta(self.default_reference)
-        contained_window_size = 2
-        result = find_all_occurrences_in_genome(
-            self.default_query,
+            self.default_query_array,
             fasta,
-            search_regions,
-            interval_window_size=contained_window_size,
+            self.targeted_region,
+            interval_window_size=0,
         )
         expected = [
             Interval(
-                self.default_chrom_name,
-                region_start - contained_window_size,
-                region_start + contained_window_size,
+                self.chrom_name,
+                self.targeted_region[0].start,
+                self.targeted_region[0].end - 1,
             )
         ]
         assert result == expected
 
-    def test_find_all_occs_hits_with_window_outside_genome(self):
-        region_start = self.len_default_query_revcomp_array
-        search_regions = [
-            Interval(
-                self.default_chrom_name,
-                start=region_start,
-                end=region_start + len(self.default_query),
-            )
-        ]
-        fasta = self.make_fasta(self.default_reference)
+    def test_find_all_occs_hits_with_window(self):
+        fasta = self.make_fasta(self.telo_array_record)
         overflowing_window_size = 400
         result = find_all_occurrences_in_genome(
-            self.default_query,
+            self.default_query_array,
             fasta,
-            search_regions,
+            self.targeted_region,
             interval_window_size=overflowing_window_size,
         )
-        expected_end = len(self.default_query) * 19 - 1
-        expected = [Interval(self.default_chrom_name, 0, expected_end)]
+        expected_end = len(self.telo_array) - 1
+        expected = [Interval(self.chrom_name, 0, expected_end)]
+        assert result == expected
+
+
+class TestFindOccurrencesInGenomeImperfectTeloArrays(ClassWithTempFasta):
+    chrom_name = "chr1"
+    telo_unit = "TTAGGC"
+    mutated_telo_unit = "TTTGGC"
+    telo_array = f"{telo_unit*3}{mutated_telo_unit*2}{telo_unit*3}"
+    telo_array_record = f">{chrom_name}\n{telo_array}\n"
+    search_region = [Interval(chrom_name)]
+
+    def test_contiguous_units_are_clustered(self):
+        fasta = self.make_fasta(self.telo_array_record)
+
+        result = find_all_occurrences_in_genome(
+            self.telo_unit,
+            fasta,
+            self.search_region,
+            interval_window_size=0,
+        )
+        expected = [
+            Interval(self.chrom_name, 0, len(self.telo_unit) * 3 - 1),
+            Interval(
+                self.chrom_name, len(self.telo_unit) * 5, len(self.telo_unit) * 8 - 1
+            ),
+        ]
+        assert result == expected
+
+    def test_find_separate_arrays(self):
+        fasta = self.make_fasta(self.telo_array_record)
+
+        result = find_all_occurrences_in_genome(
+            self.telo_unit * 3,
+            fasta,
+            self.search_region,
+            interval_window_size=0,
+        )
+
+        expected = [
+            Interval(self.chrom_name, 0, len(self.telo_unit) * 3 - 1),
+            Interval(
+                self.chrom_name, len(self.telo_unit) * 5, len(self.telo_unit) * 8 - 1
+            ),
+        ]
+        assert result == expected
+
+    def test_cluster_arrays_within_window_size(self):
+        fasta = self.make_fasta(self.telo_array_record)
+
+        result = find_all_occurrences_in_genome(
+            self.telo_unit * 3,
+            fasta,
+            self.search_region,
+            interval_window_size=7,
+        )
+
+        expected = [
+            Interval(self.chrom_name, 0, len(self.telo_unit) * 8 - 1),
+        ]
         assert result == expected

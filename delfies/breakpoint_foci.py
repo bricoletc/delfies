@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
 
-from delfies import ID_DELIM, BreakpointType
+from delfies import ID_DELIM, BreakpointType, BreakpointDetectionParams
 from delfies.interval_utils import Interval, get_contiguous_ranges
 from delfies.SAM_utils import (
     find_softclip_at_extremity,
@@ -17,20 +17,6 @@ from delfies.seq_utils import ORIENTATIONS, Orientation
 
 READ_SUPPORT_PREFIX = "num_supporting_reads"
 READ_SUPPORTS = [f"{READ_SUPPORT_PREFIX}{ID_DELIM}{o}" for o in ORIENTATIONS]
-
-
-@dataclass
-class BreakpointDetectionParams:
-    bam_fname: str
-    telomere_seqs: dict
-    telo_array_size: int
-    max_edit_distance: int
-    clustering_threshold: int
-    min_mapq: int
-    read_filter_flag: int
-    min_supporting_reads: int
-    breakpoint_type: str = ""
-    ofname_base: str = None
 
 
 def setup_breakpoint_tents() -> Tents:

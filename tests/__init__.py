@@ -14,6 +14,7 @@ class ClassWithTempFasta:
     def teardown_class(cls):
         cls.temp_dir.cleanup()
 
+    @classmethod
     def make_fasta(self, input_string):
         with self.temp_fasta.open("w") as ofstream:
             ofstream.write(input_string)

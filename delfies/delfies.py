@@ -31,7 +31,7 @@ from delfies.SAM_utils import (
 from delfies.seq_utils import (
     TELOMERE_SEQS,
     Orientation,
-    find_all_occurrences_in_genome,
+    find_all_telomere_arrays,
     rev_comp,
 )
 
@@ -253,29 +253,25 @@ def main(
     except ValueError:
         breakpoint_types_to_analyse = all_breakpoint_types
 
-    maximal_foci = []
+    identified_breakpoints = []
     for breakpoint_type_to_analyse in breakpoint_types_to_analyse:
         detection_params.breakpoint_type = breakpoint_type_to_analyse
         detection_params.ofname_base = (
             f"{ofname_base}{ID_DELIM}{breakpoint_type_to_analyse}"
         )
         if breakpoint_type_to_analyse is BreakpointType.G2S:
-            telomere_query = (
-                detection_params.telomere_seqs[Orientation.forward]
-                * detection_params.telo_array_size
-            )
+            # Restrict regions to analyse to those containing telomere arrays
             genome_fasta = Fasta(genome_fname, build_index=True)
-            seq_regions = find_all_occurrences_in_genome(
-                telomere_query,
-                genome_fasta,
-                seq_regions,
-                interval_window_size=20,
-            )
-        maximal_foci += run_breakpoint_detection(detection_params, seq_regions, threads)
+            seq_regions = find_all_telomere_arrays(genome_fasta, detection_params, seq_regions)
+        identified_breakpoints += run_breakpoint_detection(detection_params, seq_regions, threads)
 
-    write_breakpoint_bed(maximal_foci, odirname)
+        if breakpoint_type_to_analyse is BreakpoinType.S2G:
+            # TODO
+            pass
+
+    write_breakpoint_bed(identified_breakpoints, odirname)
     seq_window_size = max(seq_window_size, 1)
-    write_breakpoint_sequences(genome_fname, maximal_foci, odirname, seq_window_size)
+    write_breakpoint_sequences(genome_fname, identified_breakpoints, odirname, seq_window_size)
 
 
 if __name__ == "__main__":
