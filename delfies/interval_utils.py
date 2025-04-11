@@ -17,7 +17,7 @@ class Interval:
             raise ValueError("Interval object has not been assigned coordinates")
         return self.start <= query_pos <= self.end
 
-    def overlaps_or_touches(self, other: 'Interval') -> bool:
+    def overlaps_or_touches(self, other: "Interval") -> bool:
         return (self.start <= other.end + 1) and (other.start <= self.end + 1)
 
     def to_region_string(self) -> str:

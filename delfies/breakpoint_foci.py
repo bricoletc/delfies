@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple
 from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
 
-from delfies import ID_DELIM, BreakpointType, BreakpointDetectionParams
+from delfies import ID_DELIM, BreakpointDetectionParams, BreakpointType
 from delfies.interval_utils import Interval, get_contiguous_ranges
 from delfies.SAM_utils import (
     find_softclip_at_extremity,
@@ -156,11 +156,11 @@ def record_read_depth_at_breakpoint_foci(
     detection_params,
 ):
     """
-    Adds read depth at each position in :positions_to_commit:, 
+    Adds read depth at each position in positions_to_commit,
     using pysam 'pileup'.
-    Special cases: 
-        - When a breakpoint occurs at first position of a contig, 'pileup' will not 
-          record any read depth as the breakpoint position is set to -1. 
+    Special cases:
+        - When a breakpoint occurs at first position of a contig, 'pileup' will not
+          record any read depth as the breakpoint position is set to -1.
           So we manually commit that position to :breakpoint_foci: to ensure it is output.
         - [TODO] When a breakpoint occurs at last position of a contig
     """

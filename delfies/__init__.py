@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 from enum import Enum
 from importlib import metadata
-from dataclasses import dataclass
 
 __version__ = metadata.version("delfies")
 

@@ -28,12 +28,7 @@ from delfies.SAM_utils import (
     DEFAULT_READ_FILTER_FLAG,
     DEFAULT_READ_FILTER_NAMES,
 )
-from delfies.seq_utils import (
-    TELOMERE_SEQS,
-    Orientation,
-    find_all_telomere_arrays,
-    rev_comp,
-)
+from delfies.seq_utils import TELOMERE_SEQS, Orientation, find_telomere_arrays, rev_comp
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -66,6 +61,30 @@ click.rich_click.OPTION_GROUPS = {
         },
     ]
 }
+
+
+def remove_breakpoints_in_telomere_arrays(
+    genome_fasta: Fasta,
+    detection_params: BreakpointDetectionParams,
+    maximal_foci: MaximalFoci,
+) -> MaximalFoci:
+    result = list()
+    telo_array_size = len(
+        detection_params.telomere_seqs[Orientation.forward]
+        * detection_params.telo_array_size
+    )
+    for maximal_focus in maximal_foci:
+        region_to_search = Interval(
+            maximal_focus.focus.contig,
+            max(maximal_focus.interval[0] - telo_array_size, 0),
+            maximal_focus.interval[1] + telo_array_size,
+        )
+        telomere_arrays_overlapping_breakpoint = find_telomere_arrays(
+            genome_fasta, detection_params, [region_to_search]
+        )
+        if len(telomere_arrays_overlapping_breakpoint) == 0:
+            result.append(maximal_focus)
+    return result
 
 
 def run_breakpoint_detection(
@@ -254,6 +273,7 @@ def main(
         breakpoint_types_to_analyse = all_breakpoint_types
 
     identified_breakpoints = []
+    genome_fasta = Fasta(genome_fname, build_index=True)
     for breakpoint_type_to_analyse in breakpoint_types_to_analyse:
         detection_params.breakpoint_type = breakpoint_type_to_analyse
         detection_params.ofname_base = (
@@ -261,17 +281,26 @@ def main(
         )
         if breakpoint_type_to_analyse is BreakpointType.G2S:
             # Restrict regions to analyse to those containing telomere arrays
-            genome_fasta = Fasta(genome_fname, build_index=True)
-            seq_regions = find_all_telomere_arrays(genome_fasta, detection_params, seq_regions)
-        identified_breakpoints += run_breakpoint_detection(detection_params, seq_regions, threads)
+            seq_regions = find_telomere_arrays(
+                genome_fasta, detection_params, seq_regions
+            )
+        candidate_breakpoints = run_breakpoint_detection(
+            detection_params, seq_regions, threads
+        )
 
-        if breakpoint_type_to_analyse is BreakpoinType.S2G:
-            # TODO
-            pass
+        if breakpoint_type_to_analyse is BreakpointType.S2G:
+            # Excludes (read-based) telomere extensions in existing (genomic) telomere arrays
+            identified_breakpoints += remove_breakpoints_in_telomere_arrays(
+                genome_fasta, detection_params, candidate_breakpoints
+            )
+        else:
+            identified_breakpoints += candidate_breakpoints
 
     write_breakpoint_bed(identified_breakpoints, odirname)
     seq_window_size = max(seq_window_size, 1)
-    write_breakpoint_sequences(genome_fname, identified_breakpoints, odirname, seq_window_size)
+    write_breakpoint_sequences(
+        genome_fname, identified_breakpoints, odirname, seq_window_size
+    )
 
 
 if __name__ == "__main__":

@@ -70,7 +70,7 @@ def cyclic_shifts(input_str: str):
     return result
 
 
-def find_all_telomere_arrays(
+def find_telomere_arrays(
     genome_fasta: Fasta,
     detection_params: BreakpointDetectionParams,
     seq_regions: Intervals,
@@ -86,7 +86,7 @@ def find_all_telomere_arrays(
         telomere_query,
         genome_fasta,
         seq_regions,
-        interval_window_size=20,
+        interval_window_size=10,
     )
     return result
 
