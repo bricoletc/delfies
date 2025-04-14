@@ -8,13 +8,8 @@ from delfies.SAM_utils import (
     has_softclipped_telo_array,
     read_flag_matches,
 )
-from delfies.seq_utils import (
-    TELOMERE_SEQS,
-    Orientation,
-    cyclic_shifts,
-    randomly_substitute,
-    rev_comp,
-)
+from delfies.seq_utils import Orientation, cyclic_shifts, randomly_substitute, rev_comp
+from delfies.telomere_utils import TELOMERE_SEQS
 
 DEFAULT_ALIGNED_SEQ = "ATGCAAAAAAAAATTTGGA"
 DEFAULT_TELO_DICT = TELOMERE_SEQS["Nematoda"]

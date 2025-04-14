@@ -5,7 +5,6 @@ from random import choice as random_choice
 
 from pyfastx import Fasta
 
-from delfies import BreakpointDetectionParams
 from delfies.interval_utils import Interval, Intervals
 
 
@@ -58,36 +57,10 @@ def randomly_substitute(seq: str, num_mutations: int = 1) -> str:
     return mutated_seq
 
 
-TELOMERE_SEQS = {
-    "Nematoda": {Orientation.forward: "TTAGGC", Orientation.reverse: "GCCTAA"}
-}
-
-
 def cyclic_shifts(input_str: str):
     result = list()
     for i in range(len(input_str)):
         result.append(input_str[i:] + input_str[:i])
-    return result
-
-
-def find_telomere_arrays(
-    genome_fasta: Fasta,
-    detection_params: BreakpointDetectionParams,
-    seq_regions: Intervals,
-) -> Intervals:
-    """
-    seq_regions: regions in which to look for the arrays
-    """
-    telomere_query = (
-        detection_params.telomere_seqs[Orientation.forward]
-        * detection_params.telo_array_size
-    )
-    result = find_all_occurrences_in_genome(
-        telomere_query,
-        genome_fasta,
-        seq_regions,
-        interval_window_size=10,
-    )
     return result
 
 

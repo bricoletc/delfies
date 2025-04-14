@@ -28,7 +28,12 @@ from delfies.SAM_utils import (
     DEFAULT_READ_FILTER_FLAG,
     DEFAULT_READ_FILTER_NAMES,
 )
-from delfies.seq_utils import TELOMERE_SEQS, Orientation, find_telomere_arrays, rev_comp
+from delfies.seq_utils import Orientation, rev_comp
+from delfies.telomere_utils import (
+    TELOMERE_SEQS,
+    find_telomere_arrays,
+    remove_breakpoints_in_telomere_arrays,
+)
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -61,30 +66,6 @@ click.rich_click.OPTION_GROUPS = {
         },
     ]
 }
-
-
-def remove_breakpoints_in_telomere_arrays(
-    genome_fasta: Fasta,
-    detection_params: BreakpointDetectionParams,
-    maximal_foci: MaximalFoci,
-) -> MaximalFoci:
-    result = list()
-    telo_array_size = len(
-        detection_params.telomere_seqs[Orientation.forward]
-        * detection_params.telo_array_size
-    )
-    for maximal_focus in maximal_foci:
-        region_to_search = Interval(
-            maximal_focus.focus.contig,
-            max(maximal_focus.interval[0] - telo_array_size, 0),
-            maximal_focus.interval[1] + telo_array_size,
-        )
-        telomere_arrays_overlapping_breakpoint = find_telomere_arrays(
-            genome_fasta, detection_params, [region_to_search]
-        )
-        if len(telomere_arrays_overlapping_breakpoint) == 0:
-            result.append(maximal_focus)
-    return result
 
 
 def run_breakpoint_detection(
@@ -230,7 +211,7 @@ def main(
     """
     Looks for DNA Elimination breakpoints from a bam of reads aligned to a genome.
 
-    odirname is the directory to store outputs in. It is also used to store per-contig intermediate results.
+    odirname is the directory to store outputs in.
     """
     odirname = Path(odirname)
     odirname.mkdir(parents=True, exist_ok=True)
