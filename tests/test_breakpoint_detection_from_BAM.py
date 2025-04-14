@@ -8,11 +8,11 @@ from pysam import AlignedSegment, AlignmentFile
 from pysam import index as pysam_index
 from pysam import qualitystring_to_array
 
-from delfies import BreakpointType
+from delfies import BreakpointType, Orientation
 from delfies.breakpoint_foci import BreakpointDetectionParams, find_breakpoint_foci
 from delfies.interval_utils import Interval
 from delfies.SAM_utils import DEFAULT_MIN_MAPQ, DEFAULT_READ_FILTER_FLAG
-from delfies.seq_utils import Orientation, randomly_substitute, rev_comp
+from delfies.seq_utils import randomly_substitute, rev_comp
 from delfies.telomere_utils import TELOMERE_SEQS
 
 DEFAULT_NON_TELO_SEQ = "TAACCC"

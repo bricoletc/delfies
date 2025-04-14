@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
 from importlib import metadata
+from typing import List, Tuple
+
+from datasci import Tent
 
 __version__ = metadata.version("delfies")
 
@@ -40,3 +43,38 @@ class BreakpointDetectionParams:
     min_supporting_reads: int
     breakpoint_type: str = ""
     ofname_base: str = None
+
+
+class Orientation(Enum):
+    forward = "+"
+    reverse = "-"
+
+
+ORIENTATIONS = list(map(lambda e: e.name, Orientation))
+
+READ_SUPPORT_PREFIX = "num_supporting_reads"
+
+
+@dataclass
+class PutativeBreakpoint:
+    orientation: Orientation
+    max_value: int
+    next_max_value: int
+    max_value_other_orientation: int
+    interval: Tuple[int, int]
+    focus: Tent
+    breakpoint_type: str = ""
+
+    def update(self, query_focus: Tent):
+        query_focus_value = int(
+            query_focus[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{self.orientation.name}"]
+        )
+        if query_focus_value > self.max_value:
+            self.next_max_value = self.max_value
+            self.max_value = query_focus_value
+            self.focus = query_focus
+        elif query_focus_value > self.next_max_value:
+            self.next_max_value = query_focus_value
+
+
+PutativeBreakpoints = List[PutativeBreakpoint]

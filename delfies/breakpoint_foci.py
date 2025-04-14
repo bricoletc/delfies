@@ -1,21 +1,23 @@
 from collections import defaultdict
-from dataclasses import dataclass
 from itertools import chain as it_chain
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
 
-from delfies import ID_DELIM, BreakpointDetectionParams, BreakpointType
-from delfies.interval_utils import Interval, get_contiguous_ranges
-from delfies.SAM_utils import (
-    find_softclip_at_extremity,
-    has_softclipped_telo_array,
-    read_flag_matches,
+from delfies import (
+    ID_DELIM,
+    ORIENTATIONS,
+    READ_SUPPORT_PREFIX,
+    BreakpointDetectionParams,
+    BreakpointType,
+    Orientation,
+    PutativeBreakpoint,
 )
-from delfies.seq_utils import ORIENTATIONS, Orientation
+from delfies.interval_utils import Interval, get_contiguous_ranges
+from delfies.SAM_utils import find_softclip_at_extremity, read_flag_matches
+from delfies.telomere_utils import has_softclipped_telo_array
 
-READ_SUPPORT_PREFIX = "num_supporting_reads"
 READ_SUPPORTS = [f"{READ_SUPPORT_PREFIX}{ID_DELIM}{o}" for o in ORIENTATIONS]
 
 
@@ -200,31 +202,6 @@ def record_read_depth_at_breakpoint_foci(
 #####################
 ## Foci clustering ##
 #####################
-@dataclass
-class MaximalFocus:
-    orientation: Orientation
-    max_value: int
-    next_max_value: int
-    max_value_other_orientation: int
-    interval: Tuple[int, int]
-    focus: Tent
-    breakpoint_type: str = ""
-
-    def update(self, query_focus: Tent):
-        query_focus_value = int(
-            query_focus[f"{READ_SUPPORT_PREFIX}{ID_DELIM}{self.orientation.name}"]
-        )
-        if query_focus_value > self.max_value:
-            self.next_max_value = self.max_value
-            self.max_value = query_focus_value
-            self.focus = query_focus
-        elif query_focus_value > self.next_max_value:
-            self.next_max_value = query_focus_value
-
-
-MaximalFoci = List[MaximalFocus]
-
-
 class FociWindow:
     def __init__(self, focus):
         self.foci = [focus]
@@ -245,11 +222,11 @@ class FociWindow:
         if start < self.Min:
             self.Min = start
 
-    def find_peak_softclip_focus(self) -> MaximalFocus:
-        forward_maximum = MaximalFocus(
+    def find_peak_softclip_focus(self) -> PutativeBreakpoint:
+        forward_maximum = PutativeBreakpoint(
             Orientation.forward, 0, 0, 0, (self.Min, self.Max), None
         )
-        reverse_maximum = MaximalFocus(
+        reverse_maximum = PutativeBreakpoint(
             Orientation.reverse, 0, 0, 0, (self.Min, self.Max), None
         )
         for focus in self.foci:

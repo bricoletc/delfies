@@ -1,15 +1,15 @@
 import pytest
 from pysam import CMATCH, CSOFT_CLIP, AlignedSegment
 
+from delfies import Orientation
 from delfies.SAM_utils import (
     FLAGS,
     SoftclippedRead,
     find_softclip_at_extremity,
-    has_softclipped_telo_array,
     read_flag_matches,
 )
-from delfies.seq_utils import Orientation, cyclic_shifts, randomly_substitute, rev_comp
-from delfies.telomere_utils import TELOMERE_SEQS
+from delfies.seq_utils import cyclic_shifts, randomly_substitute, rev_comp
+from delfies.telomere_utils import TELOMERE_SEQS, has_softclipped_telo_array
 
 DEFAULT_ALIGNED_SEQ = "ATGCAAAAAAAAATTTGGA"
 DEFAULT_TELO_DICT = TELOMERE_SEQS["Nematoda"]

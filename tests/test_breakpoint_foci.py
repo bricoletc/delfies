@@ -1,9 +1,9 @@
 import pytest
 
+from delfies import PutativeBreakpoint
 from delfies.breakpoint_foci import (
     READ_SUPPORTS,
     FociWindow,
-    MaximalFocus,
     Orientation,
     cluster_breakpoint_foci,
     setup_breakpoint_tents,
@@ -46,8 +46,8 @@ def focus_window():
 
 
 @pytest.fixture
-def maximal_focus():
-    max_focus = MaximalFocus(
+def putative_breakpoint():
+    max_focus = PutativeBreakpoint(
         orientation=Orientation.forward,
         max_value=10,
         next_max_value=2,
@@ -58,20 +58,24 @@ def maximal_focus():
     return max_focus
 
 
-class TestMaximalFocus:
-    def test_maximal_focus_update_no_new_max(self, breakpoint_focus, maximal_focus):
-        maximal_focus.max_value = 100
-        maximal_focus.update(breakpoint_focus)
-        assert maximal_focus.focus is None
-        assert maximal_focus.max_value == 100
-        assert maximal_focus.next_max_value == 15
+class TestPutativeBreakpoint:
+    def test_putative_breakpoint_update_no_new_max(
+        self, breakpoint_focus, putative_breakpoint
+    ):
+        putative_breakpoint.max_value = 100
+        putative_breakpoint.update(breakpoint_focus)
+        assert putative_breakpoint.focus is None
+        assert putative_breakpoint.max_value == 100
+        assert putative_breakpoint.next_max_value == 15
 
-    def test_maximal_focus_update_new_max(self, breakpoint_focus, maximal_focus):
-        prev_max_value = maximal_focus.max_value
-        maximal_focus.update(breakpoint_focus)
-        assert maximal_focus.focus == breakpoint_focus
-        assert maximal_focus.max_value == breakpoint_focus[f"{READ_SUPPORTS[0]}"]
-        assert maximal_focus.next_max_value == prev_max_value
+    def test_putative_breakpoint_update_new_max(
+        self, breakpoint_focus, putative_breakpoint
+    ):
+        prev_max_value = putative_breakpoint.max_value
+        putative_breakpoint.update(breakpoint_focus)
+        assert putative_breakpoint.focus == breakpoint_focus
+        assert putative_breakpoint.max_value == breakpoint_focus[f"{READ_SUPPORTS[0]}"]
+        assert putative_breakpoint.next_max_value == prev_max_value
 
 
 class TestFociWindow:
@@ -127,7 +131,7 @@ class TestFociWindow:
     def test_find_peak_softclip_focus_reverse_max(self, breakpoint_focus, focus_window):
         focus_window.add(breakpoint_focus)
         max_focus = focus_window.find_peak_softclip_focus()
-        assert max_focus == MaximalFocus(
+        assert max_focus == PutativeBreakpoint(
             orientation=Orientation.reverse,
             max_value=200,
             next_max_value=20,
@@ -140,7 +144,7 @@ class TestFociWindow:
         breakpoint_focus[f"{READ_SUPPORTS[0]}"] = 400
         focus_window.add(breakpoint_focus)
         max_focus = focus_window.find_peak_softclip_focus()
-        assert max_focus == MaximalFocus(
+        assert max_focus == PutativeBreakpoint(
             orientation=Orientation.forward,
             max_value=400,
             next_max_value=2,

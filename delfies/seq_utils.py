@@ -1,16 +1,11 @@
 import re
 from dataclasses import dataclass
-from enum import Enum
 from random import choice as random_choice
 
 from pyfastx import Fasta
 
+from delfies import Orientation
 from delfies.interval_utils import Interval, Intervals
-
-
-class Orientation(Enum):
-    forward = "+"
-    reverse = "-"
 
 
 @dataclass
@@ -21,8 +16,6 @@ class FastaRecord:
     def __repr__(self):
         return f">{self.ID}\n{self.sequence}\n"
 
-
-ORIENTATIONS = list(map(lambda e: e.name, Orientation))
 
 REVCOMP_TABLE_DNA = dict(A="T", C="G", G="C", T="A", N="N")
 NUCLEOTIDES = set(REVCOMP_TABLE_DNA.keys())

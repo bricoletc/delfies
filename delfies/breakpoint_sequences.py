@@ -2,12 +2,13 @@ from typing import List
 
 from pyfastx import Fasta
 
-from delfies.breakpoint_foci import READ_SUPPORT_PREFIX, MaximalFoci
-from delfies.seq_utils import FastaRecord, Orientation, rev_comp
+from delfies import Orientation, PutativeBreakpoints
+from delfies.breakpoint_foci import READ_SUPPORT_PREFIX
+from delfies.seq_utils import FastaRecord, rev_comp
 
 
 def extract_breakpoint_sequences(
-    maximal_foci: MaximalFoci, genome: Fasta, seq_window_size: int
+    maximal_foci: PutativeBreakpoints, genome: Fasta, seq_window_size: int
 ) -> List[FastaRecord]:
     result = list()
     for max_focus in maximal_foci:
@@ -30,7 +31,10 @@ def extract_breakpoint_sequences(
 
 
 def write_breakpoint_sequences(
-    genome_fname: str, maximal_foci: MaximalFoci, odirname: str, seq_window_size: int
+    genome_fname: str,
+    maximal_foci: PutativeBreakpoints,
+    odirname: str,
+    seq_window_size: int,
 ) -> None:
     genome = Fasta(genome_fname)
     breakpoint_sequences = extract_breakpoint_sequences(

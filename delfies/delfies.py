@@ -11,12 +11,13 @@ from delfies import (
     ID_DELIM,
     REGION_CLICK_HELP,
     BreakpointType,
+    Orientation,
+    PutativeBreakpoints,
     __version__,
     all_breakpoint_types,
 )
 from delfies.breakpoint_foci import (
     BreakpointDetectionParams,
-    MaximalFoci,
     cluster_breakpoint_foci,
     find_breakpoint_foci,
     setup_breakpoint_tents,
@@ -28,7 +29,7 @@ from delfies.SAM_utils import (
     DEFAULT_READ_FILTER_FLAG,
     DEFAULT_READ_FILTER_NAMES,
 )
-from delfies.seq_utils import Orientation, rev_comp
+from delfies.seq_utils import rev_comp
 from delfies.telomere_utils import (
     TELOMERE_SEQS,
     find_telomere_arrays,
@@ -70,7 +71,7 @@ click.rich_click.OPTION_GROUPS = {
 
 def run_breakpoint_detection(
     detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
-) -> MaximalFoci:
+) -> PutativeBreakpoints:
     with mp.Pool(processes=threads) as pool:
         pooled_results = pool.starmap(
             find_breakpoint_foci,
@@ -88,27 +89,31 @@ def run_breakpoint_detection(
     clustered_foci = cluster_breakpoint_foci(
         all_foci, tolerance=detection_params.clustering_threshold
     )
-    maximal_foci = map(
+    putative_breakpoints = map(
         lambda cluster: cluster.find_peak_softclip_focus(), clustered_foci
     )
-    maximal_foci = sorted(maximal_foci, key=lambda e: e.max_value, reverse=True)
-    for m_f in maximal_foci:
+    putative_breakpoints = sorted(
+        putative_breakpoints, key=lambda e: e.max_value, reverse=True
+    )
+    for m_f in putative_breakpoints:
         m_f.breakpoint_type = detection_params.breakpoint_type
-    return maximal_foci
+    return putative_breakpoints
 
 
-def write_breakpoint_bed(maximal_foci: MaximalFoci, odirname: str) -> None:
+def write_breakpoint_bed(
+    putative_breakpoints: PutativeBreakpoints, odirname: str
+) -> None:
     breakpoint_bed = odirname / "breakpoint_locations.bed"
     with breakpoint_bed.open("w") as ofstream:
-        for maximal_focus in maximal_foci:
-            strand = "+" if maximal_focus.orientation is Orientation.forward else "-"
-            breakpoint_name = f"Type:{maximal_focus.breakpoint_type};breakpoint_window:{maximal_focus.interval[0]}-{maximal_focus.interval[1]}"
+        for putative_breakpoint in putative_breakpoints:
+            strand = putative_breakpoint.orientation.value
+            breakpoint_name = f"Type:{putative_breakpoint.breakpoint_type};breakpoint_window:{putative_breakpoint.interval[0]}-{putative_breakpoint.interval[1]}"
             out_line = [
-                maximal_focus.focus.contig,
-                maximal_focus.focus.start,
-                maximal_focus.focus.end,
+                putative_breakpoint.focus.contig,
+                putative_breakpoint.focus.start,
+                putative_breakpoint.focus.end,
                 breakpoint_name,
-                maximal_focus.max_value,
+                putative_breakpoint.max_value,
                 strand,
             ]
             ofstream.write("\t".join(map(str, out_line)) + "\n")

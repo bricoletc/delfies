@@ -2,10 +2,9 @@ from dataclasses import dataclass
 from functools import reduce
 from typing import Optional
 
-from edlib import align as edlib_align
 from pysam import CSOFT_CLIP, AlignedSegment
 
-from delfies.seq_utils import Orientation
+from delfies import Orientation
 
 
 @dataclass
@@ -76,30 +75,3 @@ def find_softclip_at_extremity(
         return None
     else:
         return result
-
-
-def has_softclipped_telo_array(
-    read: SoftclippedRead,
-    orientation: Orientation,
-    telomere_seqs,
-    min_telo_array_size: int,
-    max_edit_distance: int,
-) -> bool:
-    """
-    Note: we allow for the softclipped telo array to start with any cyclic shift
-    of the telomeric repeat unit.
-    """
-    telo_unit = telomere_seqs[orientation]
-    telo_array = telo_unit * min_telo_array_size
-    subseq_clip_end = len(telo_array) + len(telo_unit)
-    if orientation is Orientation.forward:
-        end = read.sc_query + subseq_clip_end
-        subseq = read.sequence[read.sc_query : end]
-    else:
-        start = max(read.sc_query + 1 - subseq_clip_end, 0)
-        subseq = read.sequence[start : read.sc_query + 1]
-    result = edlib_align(
-        telo_array, subseq, mode="HW", task="distance", k=max_edit_distance
-    )
-    found_telo_array = result["editDistance"] != -1
-    return found_telo_array
