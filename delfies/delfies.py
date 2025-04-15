@@ -255,7 +255,7 @@ def main(
         breakpoint_types_to_analyse = all_breakpoint_types
 
     identified_breakpoints = []
-    genome_fasta = Fasta(genome_fname, build_index=True)
+    genome_fasta = Fasta(genome_fname, build_index=True, uppercase=True)
     searched_telo_unit = detection_params.telomere_seqs[Orientation.forward]
     searched_telo_array = searched_telo_unit * detection_params.telo_array_size
     interval_window_size = len(searched_telo_array)
