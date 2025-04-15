@@ -27,7 +27,7 @@ def softclipped_read():
     )
 
 
-class TestSoftClippedTeloArraysInReads:
+class TestFindSoftClippedTeloArraysInReads:
     def test_softclipped_read_with_nontelomeric_3prime_softclips_is_not_recognised(
         self, softclipped_read
     ):

@@ -29,12 +29,8 @@ from delfies.SAM_utils import (
     DEFAULT_READ_FILTER_FLAG,
     DEFAULT_READ_FILTER_NAMES,
 )
-from delfies.seq_utils import rev_comp
-from delfies.telomere_utils import (
-    TELOMERE_SEQS,
-    find_telomere_arrays,
-    remove_breakpoints_in_telomere_arrays,
-)
+from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
+from delfies.telomere_utils import TELOMERE_SEQS, remove_breakpoints_in_telomere_arrays
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -260,6 +256,9 @@ def main(
 
     identified_breakpoints = []
     genome_fasta = Fasta(genome_fname, build_index=True)
+    searched_telo_unit = detection_params.telomere_seqs[Orientation.forward]
+    searched_telo_array = searched_telo_unit * detection_params.telo_array_size
+    interval_window_size = len(searched_telo_array)
     for breakpoint_type_to_analyse in breakpoint_types_to_analyse:
         detection_params.breakpoint_type = breakpoint_type_to_analyse
         detection_params.ofname_base = (
@@ -267,8 +266,11 @@ def main(
         )
         if breakpoint_type_to_analyse is BreakpointType.G2S:
             # Restrict regions to analyse to those containing telomere arrays
-            seq_regions = find_telomere_arrays(
-                genome_fasta, detection_params, seq_regions
+            seq_regions = find_all_occurrences_in_genome(
+                searched_telo_array,
+                genome_fasta,
+                seq_regions,
+                interval_window_size,
             )
         candidate_breakpoints = run_breakpoint_detection(
             detection_params, seq_regions, threads
@@ -277,7 +279,10 @@ def main(
         if breakpoint_type_to_analyse is BreakpointType.S2G:
             # Excludes (read-based) telomere extensions in existing (genomic) telomere arrays
             identified_breakpoints += remove_breakpoints_in_telomere_arrays(
-                genome_fasta, detection_params, candidate_breakpoints
+                genome_fasta,
+                searched_telo_array,
+                interval_window_size,
+                candidate_breakpoints,
             )
         else:
             identified_breakpoints += candidate_breakpoints

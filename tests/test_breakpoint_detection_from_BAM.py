@@ -120,7 +120,7 @@ def detection_params():
         Orientation.reverse: rev_comp(DEFAULT_TELO_SEQ),
     }
     return BreakpointDetectionParams(
-        bam_fname="missing",
+        bam_fname="NA",
         telomere_seqs=telomere_seqs,
         telo_array_size=DEFAULT_MIN_TELO_ARRAY_SIZE,
         max_edit_distance=0,

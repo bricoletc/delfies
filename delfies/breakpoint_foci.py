@@ -1,3 +1,8 @@
+"""
+Functions to find breakpoint foci. Definition: I call a breakpoint focus (plural: foci) a genomic
+location at which 1+ reads are found bearing softclips compatible with a PDE breakpoint.
+"""
+
 from collections import defaultdict
 from itertools import chain as it_chain
 from typing import Dict, List
@@ -7,7 +12,6 @@ from pysam import AlignedSegment, AlignmentFile
 
 from delfies import (
     ID_DELIM,
-    ORIENTATIONS,
     READ_SUPPORT_PREFIX,
     BreakpointDetectionParams,
     BreakpointType,
@@ -18,7 +22,9 @@ from delfies.interval_utils import Interval, get_contiguous_ranges
 from delfies.SAM_utils import find_softclip_at_extremity, read_flag_matches
 from delfies.telomere_utils import has_softclipped_telo_array
 
-READ_SUPPORTS = [f"{READ_SUPPORT_PREFIX}{ID_DELIM}{o}" for o in ORIENTATIONS]
+READ_SUPPORTS = [
+    f"{READ_SUPPORT_PREFIX}{ID_DELIM}{o}" for o in map(lambda e: e.name, Orientation)
+]
 
 
 def setup_breakpoint_tents() -> Tents:
@@ -56,13 +62,16 @@ def record_softclips(
         if softclipped_read is None:
             continue
         if detection_params.breakpoint_type is BreakpointType.G2S:
-            softclipped_telo_array_found = has_softclipped_telo_array(
-                softclipped_read,
-                orientation,
-                detection_params.telomere_seqs,
-                min_telo_array_size=3,
-                max_edit_distance=detection_params.max_edit_distance,
-            )
+            # In G2S mode, we reject softclipped telomeres occurring in any orientation
+            softclipped_telo_array_found = False
+            for G2S_tested_orientation in Orientation:
+                softclipped_telo_array_found |= has_softclipped_telo_array(
+                    softclipped_read,
+                    G2S_tested_orientation,
+                    detection_params.telomere_seqs,
+                    min_telo_array_size=3,
+                    max_edit_distance=detection_params.max_edit_distance,
+                )
             softclips_start_inside_target_region = seq_region.spans(
                 softclipped_read.sc_ref
             )

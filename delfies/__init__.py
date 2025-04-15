@@ -50,8 +50,6 @@ class Orientation(Enum):
     reverse = "-"
 
 
-ORIENTATIONS = list(map(lambda e: e.name, Orientation))
-
 READ_SUPPORT_PREFIX = "num_supporting_reads"
 
 
