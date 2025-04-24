@@ -14,7 +14,7 @@ class TestExtractBreakpointSequences(ClassWithTempFasta):
     default_breakpoint.focus = breakpoint_location
 
     def test_extract_breakpoint_within_boundaries_single_nucleotide(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.default_reference, as_handle=True)
         self.breakpoint_location.start = 3
         breakpoint_sequences = extract_breakpoint_sequences(
             [self.default_breakpoint], fasta, seq_window_size=1
@@ -23,7 +23,7 @@ class TestExtractBreakpointSequences(ClassWithTempFasta):
         assert breakpoint_sequences[0].sequence == "GNT"
 
     def test_extract_breakpoint_within_boundaries_multiple_nucleotides(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.default_reference, as_handle=True)
         self.breakpoint_location.start = 3
         breakpoint_sequences = extract_breakpoint_sequences(
             [self.default_breakpoint], fasta, seq_window_size=2
@@ -32,7 +32,7 @@ class TestExtractBreakpointSequences(ClassWithTempFasta):
         assert breakpoint_sequences[0].sequence == "CGNTG"
 
     def test_extract_breakpoint_outside_boundaries_negative_start(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.default_reference, as_handle=True)
         for start in [-2, 0]:
             self.breakpoint_location.start = start
             breakpoint_sequences = extract_breakpoint_sequences(
@@ -42,7 +42,7 @@ class TestExtractBreakpointSequences(ClassWithTempFasta):
             assert breakpoint_sequences[0].sequence == "NAC"
 
     def test_extract_breakpoint_outside_boundaries_end_past_last_nucleotide(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.default_reference, as_handle=True)
         self.breakpoint_location.start = 9
         breakpoint_sequences = extract_breakpoint_sequences(
             [self.default_breakpoint], fasta, seq_window_size=3
@@ -51,7 +51,7 @@ class TestExtractBreakpointSequences(ClassWithTempFasta):
         assert breakpoint_sequences[0].sequence == "TACNA"
 
     def test_extract_breakpoint_within_boundaries_reverse_orientation(self):
-        fasta = self.make_fasta(self.default_reference)
+        fasta = self.make_fasta(self.default_reference, as_handle=True)
         self.breakpoint_location.start = 3
         self.default_breakpoint.orientation = Orientation.reverse
         breakpoint_sequences = extract_breakpoint_sequences(

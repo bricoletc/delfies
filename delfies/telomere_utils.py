@@ -1,5 +1,4 @@
 from edlib import align as edlib_align
-from pyfastx import Fasta
 
 from delfies import Orientation, PutativeBreakpoints
 from delfies.interval_utils import Interval
@@ -39,7 +38,7 @@ def has_softclipped_telo_array(
 
 
 def remove_breakpoints_in_telomere_arrays(
-    genome_fasta: Fasta,
+    genome_fname: str,
     searched_telo_array: str,
     interval_window_size: int,
     putative_breakpoints: PutativeBreakpoints,
@@ -58,7 +57,7 @@ def remove_breakpoints_in_telomere_arrays(
             putative_breakpoint.interval[1] + telo_array_size + interval_window_size,
         )
         telomere_arrays_overlapping_breakpoint = find_all_occurrences_in_genome(
-            searched_telo_array, genome_fasta, [region_to_search], interval_window_size
+            searched_telo_array, genome_fname, [region_to_search], interval_window_size
         )
         if len(telomere_arrays_overlapping_breakpoint) == 0:
             result.append(putative_breakpoint)

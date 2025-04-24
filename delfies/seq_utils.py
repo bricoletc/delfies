@@ -59,10 +59,11 @@ def cyclic_shifts(input_str: str):
 
 def find_all_occurrences_in_genome(
     query_sequence: str,
-    genome_fasta: Fasta,
+    genome_fname: str,
     seq_regions: Intervals,
     interval_window_size: int,
 ) -> Intervals:
+    genome_fasta = Fasta(genome_fname, build_index=True, uppercase=True)
     result = list()
     patterns = {
         Orientation.forward: re.compile(query_sequence),

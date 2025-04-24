@@ -4,7 +4,6 @@ from pathlib import Path
 
 import rich_click as click
 from pybedtools import BedTool
-from pyfastx import Fasta
 from pysam import AlignmentFile
 
 from delfies import (
@@ -255,7 +254,6 @@ def main(
         breakpoint_types_to_analyse = all_breakpoint_types
 
     identified_breakpoints = []
-    genome_fasta = Fasta(genome_fname, build_index=True, uppercase=True)
     searched_telo_unit = detection_params.telomere_seqs[Orientation.forward]
     searched_telo_array = searched_telo_unit * detection_params.telo_array_size
     interval_window_size = len(searched_telo_array)
@@ -268,7 +266,7 @@ def main(
             # Restrict regions to analyse to those containing telomere arrays
             seq_regions = find_all_occurrences_in_genome(
                 searched_telo_array,
-                genome_fasta,
+                genome_fname,
                 seq_regions,
                 interval_window_size,
             )
@@ -279,7 +277,7 @@ def main(
         if breakpoint_type_to_analyse is BreakpointType.S2G:
             # Excludes (read-based) telomere extensions in existing (genomic) telomere arrays
             identified_breakpoints += remove_breakpoints_in_telomere_arrays(
-                genome_fasta,
+                genome_fname,
                 searched_telo_array,
                 interval_window_size,
                 candidate_breakpoints,

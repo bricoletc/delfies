@@ -70,14 +70,14 @@ class TestFindOccurrencesInGenomePerfectTeloArrays(ClassWithTempFasta):
         assert result == []
 
     def test_find_all_occs_hits_whole_chrom(self):
-        fasta = self.make_fasta(self.telo_array_record)
+        """
+        Tests both lowercase and uppercase genomic nucleotides
+        """
+        all_fastas = [
+            self.make_fasta(self.telo_array_record),
+            self.make_fasta(f">{self.chrom_name}\n{self.telo_array.lower()}"),
+        ]
 
-        result = find_all_occurrences_in_genome(
-            self.default_query_array,
-            fasta,
-            self.search_region,
-            interval_window_size=0,
-        )
         expected = [
             # Forward hit
             Interval(
@@ -88,7 +88,15 @@ class TestFindOccurrencesInGenomePerfectTeloArrays(ClassWithTempFasta):
             # Reverse hit
             Interval(self.chrom_name, 0, len(self.default_query_array) - 1),
         ]
-        assert result == expected
+
+        for fasta in all_fastas:
+            result = find_all_occurrences_in_genome(
+                self.default_query_array,
+                fasta,
+                self.search_region,
+                interval_window_size=0,
+            )
+            assert result == expected
 
     def test_find_all_occs_hits_in_region(self):
         fasta = self.make_fasta(self.telo_array_record)

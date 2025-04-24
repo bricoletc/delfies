@@ -15,7 +15,10 @@ class ClassWithTempFasta:
         cls.temp_dir.cleanup()
 
     @classmethod
-    def make_fasta(self, input_string):
+    def make_fasta(self, input_string, as_handle=False):
         with self.temp_fasta.open("w") as ofstream:
             ofstream.write(input_string)
-        return Fasta(str(self.temp_fasta), build_index=True)
+        if as_handle:
+            return Fasta(str(self.temp_fasta), build_index=True)
+        else:
+            return str(self.temp_fasta)
