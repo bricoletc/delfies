@@ -3,6 +3,9 @@ authors:
 - family-names: Letcher
   given-names: Brice
   orcid: "https://orcid.org/0000-0002-8921-6005"
+- family-names: Delattre
+  given-names: Marie
+  orcid: "https://orcid.org/0000-0003-1640-0300"
 doi: 10.5281/zenodo.14526258
 message: If you use this software in your own work, please cite the associated article in the
   Journal of Open Source Software.
@@ -11,6 +14,9 @@ preferred-citation:
   - family-names: Letcher
     given-names: Brice
     orcid: "https://orcid.org/0000-0002-8921-6005"
+  - family-names: Delattre
+    given-names: Marie
+    orcid: "https://orcid.org/0000-0003-1640-0300"
   date-published: 2025-01-12
   doi: 10.21105/joss.07385
   issn: 2475-9066

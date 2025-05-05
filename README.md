@@ -14,8 +14,8 @@ breaks have occurred followed by telomere addition. It was initially designed
 and validated for studying the process of **Programmed DNA Elimination** in
 [nematodes][Meso_paper], but should work for other clades and applications too.
 
-For details on rationale or to credit the tool, please read/cite the associated paper:
-> Letcher, B., (2025). delfies: a Python package for the detection of DNA breakpoints with neo-telomere addition. Journal of Open Source Software, 10(105), 7385, https://doi.org/10.21105/joss.07385
+For details/to credit the tool, please see/cite the associated paper:
+> Letcher, B. and Delattre, M. (2025). delfies: a Python package for the detection of DNA breakpoints with neo-telomere addition. Journal of Open Source Software, 10(105), 7385, https://doi.org/10.21105/joss.07385
 
 # <a name="started"></a> Getting started
 
