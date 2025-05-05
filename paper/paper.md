@@ -8,8 +8,13 @@ tags:
   - Soma/germline differentiation
 authors:
   - name: Brice Letcher
+    corresponding: true
     orcid: 0000-0002-8921-6005
     affiliation: 1 # (Multiple affiliations must be quoted)
+  - name: Marie Delattre
+    corresponding: true
+    orcid: 0000-0003-1640-0300
+    affiliation: 1
 affiliations:
   - name: Laboratory of Biology and Modelling of the Cell, Ecole Normale Supérieure de Lyon, CNRS UMR 5239, Inserm U1293, University Claude Bernard Lyon 1, Lyon, France
     index: 1
