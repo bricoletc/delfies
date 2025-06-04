@@ -121,6 +121,8 @@ delfies --help
 * [Telomeres] 
     * Specify the telomere sequence for your organism using `--telo_forward_seq`. 
       If you're unsure, I recommend the tool [telomeric-identifier](https://github.com/tolkit/telomeric-identifier) for finding out.
+    * By default, `delfies` discards breakpoints occurring inside telomere arrays, as they in theory correspond to false positives
+      (cutting + telomere addition at existing telomeres). You can keep these breakpoints with `--keep_telomeric_breakpoints`.
 * [Aligned reads]
     * To analyse confidently-aligned reads only, you can filter reads by MAPQ (`--min_mapq`) and by bitwise flag (`--read_filter_flag`).
     * You can tolerate more or less mutations in the assembly telomeres (and in the sequencing reads) using `--telo_max_edit_distance` and `--telo_array_size`.
