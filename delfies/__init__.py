@@ -41,6 +41,7 @@ class BreakpointDetectionParams:
     min_mapq: int
     read_filter_flag: int
     min_supporting_reads: int
+    keep_telomeric_breakpoints: bool
     breakpoint_type: str = ""
     ofname_base: str = None
 

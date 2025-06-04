@@ -62,22 +62,23 @@ def record_softclips(
         if softclipped_read is None:
             continue
         if detection_params.breakpoint_type is BreakpointType.G2S:
-            # In G2S mode, we reject softclipped telomeres occurring in any orientation
-            softclipped_telo_array_found = False
-            for G2S_tested_orientation in Orientation:
-                softclipped_telo_array_found |= has_softclipped_telo_array(
-                    softclipped_read,
-                    G2S_tested_orientation,
-                    detection_params.telomere_seqs,
-                    min_telo_array_size=3,
-                    max_edit_distance=detection_params.max_edit_distance,
-                )
             softclips_start_inside_target_region = seq_region.spans(
                 softclipped_read.sc_ref
             )
+            reject_softclipped_telo_array = False
+            if not detection_params.keep_telomeric_breakpoints:
+                # In G2S mode, we reject softclipped telomeres occurring in any orientation
+                for G2S_tested_orientation in Orientation:
+                    reject_softclipped_telo_array |= has_softclipped_telo_array(
+                        softclipped_read,
+                        G2S_tested_orientation,
+                        detection_params.telomere_seqs,
+                        min_telo_array_size=3,
+                        max_edit_distance=detection_params.max_edit_distance,
+                    )
             keep_read = (
                 softclips_start_inside_target_region
-                and not softclipped_telo_array_found
+                and not reject_softclipped_telo_array
             )
         else:
             softclipped_telo_array_found = has_softclipped_telo_array(

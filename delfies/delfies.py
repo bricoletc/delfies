@@ -48,16 +48,17 @@ click.rich_click.OPTION_GROUPS = {
                 "--telo_forward_seq",
                 "--telo_array_size",
                 "--telo_max_edit_distance",
-                "--clustering_threshold",
                 "--min_mapq",
                 "--read_filter_flag",
+                "--keep_telomeric_breakpoints",
             ],
         },
         {
-            "name": "Breakpoint extraction",
+            "name": "Output breakpoints",
             "options": [
                 "--seq_window_size",
                 "--min_supporting_reads",
+                "--clustering_threshold",
             ],
         },
     ]
@@ -188,6 +189,12 @@ def write_breakpoint_bed(
     help="The type of breakpoint to look for. By default, looks for all",
     default="all",
 )
+@click.option(
+    "--keep_telomeric_breakpoints",
+    is_flag=True,
+    help="Forces delfies to keep breakpoints occurring inside telomeric arrays. As these are often false positives, they are discarded by default.",
+    show_default=True,
+)
 @click.option("--threads", type=int, default=1)
 @click.help_option("--help", "-h")
 @click.version_option(__version__, "--version", "-V")
@@ -206,6 +213,7 @@ def main(
     min_supporting_reads,
     seq_window_size,
     breakpoint_type,
+    keep_telomeric_breakpoints,
     threads,
 ):
     """
@@ -246,6 +254,7 @@ def main(
         min_mapq=min_mapq,
         read_filter_flag=read_filter_flag,
         min_supporting_reads=min_supporting_reads,
+        keep_telomeric_breakpoints=keep_telomeric_breakpoints
     )
 
     try:
@@ -274,7 +283,7 @@ def main(
             detection_params, seq_regions, threads
         )
 
-        if breakpoint_type_to_analyse is BreakpointType.S2G:
+        if breakpoint_type_to_analyse is BreakpointType.S2G and not detection_params.keep_telomeric_breakpoints:
             # Excludes (read-based) telomere extensions in existing (genomic) telomere arrays
             identified_breakpoints += remove_breakpoints_in_telomere_arrays(
                 genome_fname,
