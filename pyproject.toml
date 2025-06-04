@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "delfies"
-version = "0.9.0"
+version = "0.10.0"
 description = "delfies is a tool for the detection of DNA Elimination breakpoints"
 authors = ["Brice Letcher <brice.letcher@ens-lyon.fr>"]
 license = "MIT"

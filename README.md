@@ -52,7 +52,7 @@ Using `pip` (or equivalent - poetry, etc.):
 pip install delfies
 
 # Or install a specific release from PyPI:
-pip install delfies==0.9.0
+pip install delfies==0.10.0
 
 # Or clone and install tip of main
 git clone https://github.com/bricoletc/delfies/

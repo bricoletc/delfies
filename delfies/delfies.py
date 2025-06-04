@@ -254,7 +254,7 @@ def main(
         min_mapq=min_mapq,
         read_filter_flag=read_filter_flag,
         min_supporting_reads=min_supporting_reads,
-        keep_telomeric_breakpoints=keep_telomeric_breakpoints
+        keep_telomeric_breakpoints=keep_telomeric_breakpoints,
     )
 
     try:
@@ -283,7 +283,10 @@ def main(
             detection_params, seq_regions, threads
         )
 
-        if breakpoint_type_to_analyse is BreakpointType.S2G and not detection_params.keep_telomeric_breakpoints:
+        if (
+            breakpoint_type_to_analyse is BreakpointType.S2G
+            and not detection_params.keep_telomeric_breakpoints
+        ):
             # Excludes (read-based) telomere extensions in existing (genomic) telomere arrays
             identified_breakpoints += remove_breakpoints_in_telomere_arrays(
                 genome_fname,

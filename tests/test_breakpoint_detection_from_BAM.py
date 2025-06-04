@@ -128,6 +128,7 @@ def detection_params():
         min_mapq=DEFAULT_MIN_MAPQ,
         read_filter_flag=DEFAULT_READ_FILTER_FLAG,
         min_supporting_reads=10,
+        keep_telomeric_breakpoints=False,
         breakpoint_type=BreakpointType.S2G,
     )
 
