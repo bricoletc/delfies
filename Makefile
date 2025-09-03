@@ -2,7 +2,7 @@
 PROJECT = delfies
 COVG_REPORT = htmlcov/index.html
 OS := $(shell uname -s)
-VERSION := $(shell poetry version -s)
+VERSION := $(shell uv version --short)
 BOLD := $(shell tput bold)
 NORMAL := $(shell tput sgr0)
 # MAIN #########################################################################
@@ -13,36 +13,36 @@ all: install
 # DEPENDENCIES #################################################################
 .PHONY: install
 install:
-	poetry install
+	uv sync
 
 .PHONY: install-ci
 install-ci:
-	poetry install --no-interaction
-	poetry run delfies --version
+	uv sync --frozen
+	uv run delfies --version
 
 # TIDY #################################################################
 .PHONY: fmt
 fmt:
-	poetry run isort . --skip tmp_work --skip venv --skip dist
-	poetry run black .
+	uv run isort . --skip tmp_work --skip venv --skip dist --skip .venv
+	uv run black .
 
 .PHONY: lint
 lint:
-	poetry run flake8 . --exclude tmp_work,venv,dist
+	uv run flake8 . --extend-exclude tmp_work,venv,dist,.venv
 
 .PHONY: check-fmt
 check-fmt:
-	poetry run isort --check-only .
-	poetry run black --check .
+	uv run isort --check-only .
+	uv run black --check .
 
 # TEST ########################################################################
 .PHONY: test
 test:
-	poetry run pytest tests/
+	uv run pytest tests/
 
 .PHONY: coverage
 coverage:
-	poetry run pytest --cov-report term --cov-report html --cov=$(PROJECT) --cov-branch
+	uv run pytest --cov-report term --cov-report html --cov=$(PROJECT) --cov-branch
 ifeq ($(OS), Linux)
 	xdg-open $(COVG_REPORT)
 else ifeq ($(OS), Darwin)
@@ -59,7 +59,7 @@ precommit: fmt lint test
 # BUILD ########################################################################
 .PHONY: build
 build:
-	poetry build
+	uv build
 
 # TAG ########################################################################
 # prints out the commands to run to tag the release and push it

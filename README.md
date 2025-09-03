@@ -46,7 +46,7 @@ downloading a real genome and BAMs for a test run of `delfies`, see [test run](#
 - [Contributing](#contributing)
 
 # Installation
-Using `pip` (or equivalent - poetry, etc.): 
+Using `pip` (or equivalent - uv, etc.): 
 ```sh
 # Install latest release from PyPI
 pip install delfies

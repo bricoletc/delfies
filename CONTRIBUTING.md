@@ -25,12 +25,12 @@ formatting, linting and testing. Formatting relies on
 
 To run all these, I've created a Makefile at the root of `delfies`. If you
 have the Python packaging tool
-[`poetry`](https://github.com/python-poetry/poetry), you can run checks as
+[`uv`](https://docs.astral.sh/uv/), you can run checks as
 follows:
 
 ```sh
 cd <delfies_directory>
-poetry install 
+uv sync 
 make fmt lint test
 # Or 
 make precommit
@@ -45,7 +45,7 @@ To check what your new tests cover, you can generate a test coverage report by r
 
 ```sh
 cd <delfies_directory>
-poetry install 
+uv sync 
 make coverage
 ```
 

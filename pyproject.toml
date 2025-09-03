@@ -1,35 +1,40 @@
-[tool.poetry]
+[project]
 name = "delfies"
 version = "0.10.0"
 description = "delfies is a tool for the detection of DNA Elimination breakpoints"
-authors = ["Brice Letcher <brice.letcher@ens-lyon.fr>"]
+authors = [
+    { name = "Brice Letcher", email = "brice.letcher@ens-lyon.fr" },
+]
 license = "MIT"
 readme = "README.md"
 
-[tool.poetry.scripts]
+requires-python = ">=3.9.0"
+dependencies = [
+    "pysam>=0.22.0",
+    "pybedtools>=0.9.1",
+    "click>=8.1.7",
+    "rich-click>=1.7.3",
+    "pyfastx>=2.1.0",
+    "datasci-bricoletc>=0.1.1",
+    "edlib>=1.3.9",
+]
+
+[dependency-groups]
+dev = [
+    "black>=24.1.1",
+    "isort>=5.13.2",
+    "flake8>=7.0.0",
+    "pytest>=8.0.2",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
 delfies = 'delfies.delfies:main'
 
-[tool.poetry.dependencies]
-python = "^3.9.0"
-pysam = "^0.22.0"
-pybedtools = "^0.9.1"
-click = "^8.1.7"
-rich-click = "^1.7.3"
-pyfastx = "^2.1.0"
-datasci-bricoletc = "^0.1.1"
-edlib = "^1.3.9"
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.1.1"
-isort = "^5.13.2"
-flake8 = "^7.0.0"
-pynvim = "^0.5.0"
-pytest = "^8.0.2"
-pytest-cov = "^4.1.0"
 
 [tool.black]
 line-length = 88
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
