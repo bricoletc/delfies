@@ -2,28 +2,31 @@ import pytest
 from pysam import CMATCH, CSOFT_CLIP, AlignedSegment, AlignmentHeader
 
 from delfies import Orientation
+from delfies.interval_utils import Interval
 from delfies.SAM_utils import (
     FLAGS,
     SoftclippedRead,
+    filter_out_read_intervals,
     find_softclip_at_extremity,
     read_flag_matches,
 )
 
 DEFAULT_ALIGNED_SEQ = "ATGCAAAAAAAAATTTGGA"
 DEFAULT_SOFTCLIPPED_SEQ = "TATAGGTAACATCGCGGCATTCTACGG"
+DEFAULT_REF_NAME = "test_reference"
 
 
 @pytest.fixture
 def pysam_basic_read():
     header = AlignmentHeader.from_references(
-        reference_names=["test_reference"], reference_lengths=[100000]
+        reference_names=[DEFAULT_REF_NAME], reference_lengths=[100000]
     )
     aligned_seq = DEFAULT_ALIGNED_SEQ
     len_aligned_seq = len(aligned_seq)
     read = AlignedSegment(header=header)
     read.query_sequence = aligned_seq
     read.query_name = "test_query"
-    read.reference_name = "test_reference"
+    read.reference_name = DEFAULT_REF_NAME
     read.reference_start = 200
     read.cigartuples = [(CMATCH, len_aligned_seq)]
     return read
@@ -47,7 +50,7 @@ def pysam_read_with_5prime_softclips(pysam_basic_read):
     return read
 
 
-class TestReadFiltering:
+class TestReadBitWiseFiltering:
     read_flags = FLAGS["UNMAP"] | FLAGS["DUP"]
 
     def test_read_flag_matches(self, pysam_basic_read):
@@ -116,3 +119,52 @@ class TestSoftclipDetection:
             )
             is None
         )
+
+
+@pytest.fixture
+def basic_softclipped_read():
+    read = SoftclippedRead(
+        DEFAULT_ALIGNED_SEQ,
+        DEFAULT_REF_NAME,
+        sc_ref=400,
+        sc_query=200,
+        sc_length=50,
+        orientation=Orientation.forward,
+    )
+    return read
+
+
+class TestReadIntervalFiltering:
+    default_range = [Interval(DEFAULT_REF_NAME, 100, 150)]
+
+    def test_read_outside_range_not_filtered(self, basic_softclipped_read):
+        result = filter_out_read_intervals([basic_softclipped_read], self.default_range)
+        expected = [basic_softclipped_read]
+        assert result == expected
+
+    def test_inside_range_filtered(self, basic_softclipped_read):
+        basic_softclipped_read.sc_ref = 101
+        result = filter_out_read_intervals([basic_softclipped_read], self.default_range)
+        expected = []
+        assert result == expected
+
+    def test_at_range_exclusion_point_not_filtered(self, basic_softclipped_read):
+        """
+        We want the ref position just before the softclipped position to be considered
+        """
+        basic_softclipped_read.sc_ref = 100
+        result = filter_out_read_intervals([basic_softclipped_read], self.default_range)
+        expected = [basic_softclipped_read]
+        assert result == expected
+
+    def test_at_range_exclusion_point_reverse_not_filtered(
+        self, basic_softclipped_read
+    ):
+        """
+        We want the ref position just after the softclipped position to be considered
+        """
+        basic_softclipped_read.orientation = Orientation.reverse
+        basic_softclipped_read.sc_ref = 149
+        result = filter_out_read_intervals([basic_softclipped_read], self.default_range)
+        expected = [basic_softclipped_read]
+        assert result == expected

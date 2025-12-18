@@ -21,10 +21,25 @@ class Interval:
     def spans(self, query_pos: int) -> bool:
         if not self.has_coordinates():
             raise ValueError("Interval object has not been assigned coordinates")
-        return self.start <= query_pos <= self.end
+        return self.start <= query_pos < self.end
+
+    def overlaps(self, other: "Interval") -> bool:
+        if not self.has_coordinates():
+            raise ValueError("Interval object has not been assigned coordinates")
+        return (
+            (self.name == other.name)
+            and (self.start < other.end)
+            and (other.start < self.end)
+        )
 
     def overlaps_or_touches(self, other: "Interval") -> bool:
-        return (self.start <= other.end + 1) and (other.start <= self.end + 1)
+        if not self.has_coordinates():
+            raise ValueError("Interval object has not been assigned coordinates")
+        return (
+            (self.name == other.name)
+            and (self.start <= other.end)
+            and (other.start <= self.end)
+        )
 
     def to_region_string(self) -> str:
         result = f"{self.name}"

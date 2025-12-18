@@ -30,6 +30,7 @@ from delfies.SAM_utils import (
     DEFAULT_READ_FILTER_FLAG,
     DEFAULT_READ_FILTER_NAMES,
     SoftclippedReads,
+    filter_out_read_intervals,
 )
 from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
 from delfies.telomere_utils import TELOMERE_SEQS, record_telomere_additions
@@ -77,27 +78,6 @@ def filter_out_tents_intervals(input_tents: Tents, target_intervals: Intervals) 
                 to_remove.add(i)
                 break
     input_tents.drop_elements(to_remove)
-
-
-def filter_out_read_intervals(
-    input_reads: SoftclippedReads, target_intervals: Intervals
-) -> SoftclippedReads:
-    result = list()
-    for read in input_reads:
-        if read.orientation is Orientation.forward:
-            input_interval = Interval(read.reference_name, read.sc_ref - 1, read.sc_ref)
-        else:
-            input_interval = Interval(
-                read.reference_name, read.sc_ref + 1, read.sc_ref + 2
-            )
-        keep_read = True
-        for target_interval in target_intervals:
-            if target_interval.overlaps_or_touches(input_interval):
-                keep_read = False
-                break
-        if keep_read:
-            result.append(read)
-    return result
 
 
 def run_breakpoint_detection(

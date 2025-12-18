@@ -5,12 +5,13 @@ from typing import List, Optional
 from pysam import CSOFT_CLIP, AlignedSegment
 
 from delfies import Orientation
+from delfies.interval_utils import Interval, Intervals
 
 
 @dataclass
 class SoftclippedRead:
     """
-    `sc`: position of softclip start, located at read extremity
+    `sc`: 0-based position of softclip start, located at read extremity
     """
 
     sequence: str
@@ -81,3 +82,24 @@ def find_softclip_at_extremity(
         return None
     else:
         return result
+
+
+def filter_out_read_intervals(
+    input_reads: SoftclippedReads, target_intervals: Intervals
+) -> SoftclippedReads:
+    result = list()
+    for read in input_reads:
+        if read.orientation is Orientation.forward:
+            input_interval = Interval(read.reference_name, read.sc_ref - 1, read.sc_ref)
+        else:
+            input_interval = Interval(
+                read.reference_name, read.sc_ref + 1, read.sc_ref + 2
+            )
+        keep_read = True
+        for target_interval in target_intervals:
+            if target_interval.overlaps(input_interval):
+                keep_read = False
+                break
+        if keep_read:
+            result.append(read)
+    return result

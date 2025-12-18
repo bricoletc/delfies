@@ -82,6 +82,61 @@ class TestIntervalCoordinates:
     def test_interval_spanning_valid_coordinates(self, test_interval):
         assert test_interval.spans(test_interval.start)
         assert test_interval.spans(test_interval.start + 1)
-        assert test_interval.spans(test_interval.end)
+        assert test_interval.spans(test_interval.end - 1)
         assert not test_interval.spans(test_interval.start - 1)
-        assert not test_interval.spans(test_interval.end + 1)
+        assert not test_interval.spans(test_interval.end)
+
+
+@pytest.fixture
+def test_interval_two():
+    return Interval("chr1", 50, 100)
+
+
+class TestIntervalOverlaps:
+    """
+    Tests that Intervals are defined as [0-based inclusive, 0-based exclusive),
+    and the difference between overlap (defined as at least one position in common between two intervals)
+    and touching (defined as two contiguous overlaps).
+    """
+
+    def test_no_overlap_returns_false(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 400, 600)
+        assert not test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_containment_overlap_returns_true(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 55, 80)
+        assert test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_spanning_overlap_returns_true(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 1, 200)
+        assert test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_overlap_but_wrong_name_returns_false(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name + "blah", 55, 80)
+        assert not test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_zero_based_endpoint_overlap_returns_true(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 99, 150)
+        assert test_interval_two.overlaps(target_interval)
+
+    def test_zero_based_endpoint_touching_returns_true(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 100, 150)
+        assert not test_interval_two.overlaps(target_interval)
+        assert test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_one_based_endpoint_touching_returns_false(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 101, 150)
+        assert not test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_zero_based_startpoint_overlap_returns_true(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 1, 51)
+        assert test_interval_two.overlaps(target_interval)
+
+    def test_zero_based_startpoint_touching_returns_true(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 1, 50)
+        assert not test_interval_two.overlaps(target_interval)
+        assert test_interval_two.overlaps_or_touches(target_interval)
+
+    def test_one_based_startpoint_touching_returns_false(self, test_interval_two):
+        target_interval = Interval(test_interval_two.name, 1, 49)
+        assert not test_interval_two.overlaps_or_touches(target_interval)

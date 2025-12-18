@@ -83,10 +83,10 @@ class TestFindOccurrencesInGenomePerfectTeloArrays(ClassWithTempFasta):
             Interval(
                 self.chrom_name,
                 len(self.default_query_array) + 2,
-                len(self.telo_array) - 1,
+                len(self.telo_array),
             ),
             # Reverse hit
-            Interval(self.chrom_name, 0, len(self.default_query_array) - 1),
+            Interval(self.chrom_name, 0, len(self.default_query_array)),
         ]
 
         for fasta in all_fastas:
@@ -110,7 +110,7 @@ class TestFindOccurrencesInGenomePerfectTeloArrays(ClassWithTempFasta):
             Interval(
                 self.chrom_name,
                 self.targeted_region[0].start,
-                self.targeted_region[0].end - 1,
+                self.targeted_region[0].end,
             )
         ]
         assert result == expected
@@ -124,8 +124,7 @@ class TestFindOccurrencesInGenomePerfectTeloArrays(ClassWithTempFasta):
             self.targeted_region,
             interval_window_size=overflowing_window_size,
         )
-        expected_end = len(self.telo_array) - 1
-        expected = [Interval(self.chrom_name, 0, expected_end)]
+        expected = [Interval(self.chrom_name, 0, len(self.telo_array))]
         assert result == expected
 
 
@@ -147,10 +146,8 @@ class TestFindOccurrencesInGenomeImperfectTeloArrays(ClassWithTempFasta):
             interval_window_size=0,
         )
         expected = [
-            Interval(self.chrom_name, 0, len(self.telo_unit) * 3 - 1),
-            Interval(
-                self.chrom_name, len(self.telo_unit) * 5, len(self.telo_unit) * 8 - 1
-            ),
+            Interval(self.chrom_name, 0, len(self.telo_unit) * 3),
+            Interval(self.chrom_name, len(self.telo_unit) * 5, len(self.telo_array)),
         ]
         assert result == expected
 
@@ -165,10 +162,8 @@ class TestFindOccurrencesInGenomeImperfectTeloArrays(ClassWithTempFasta):
         )
 
         expected = [
-            Interval(self.chrom_name, 0, len(self.telo_unit) * 3 - 1),
-            Interval(
-                self.chrom_name, len(self.telo_unit) * 5, len(self.telo_unit) * 8 - 1
-            ),
+            Interval(self.chrom_name, 0, len(self.telo_unit) * 3),
+            Interval(self.chrom_name, len(self.telo_unit) * 5, len(self.telo_unit) * 8),
         ]
         assert result == expected
 
@@ -183,6 +178,6 @@ class TestFindOccurrencesInGenomeImperfectTeloArrays(ClassWithTempFasta):
         )
 
         expected = [
-            Interval(self.chrom_name, 0, len(self.telo_unit) * 8 - 1),
+            Interval(self.chrom_name, 0, len(self.telo_unit) * 8),
         ]
         assert result == expected

@@ -88,8 +88,8 @@ def find_all_occurrences_in_genome(
                         0, match.start() + relative_to_absolute - interval_window_size
                     ),
                     end=min(
-                        chrom_length - 1,
-                        match.end() + relative_to_absolute - 1 + interval_window_size,
+                        chrom_length,
+                        match.end() + relative_to_absolute + interval_window_size,
                     ),
                 )
                 if len(result) == 0:
