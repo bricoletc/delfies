@@ -15,7 +15,9 @@ DEFAULT_SOFTCLIPPED_SEQ = "TATAGGTAACATCGCGGCATTCTACGG"
 
 @pytest.fixture
 def pysam_basic_read():
-    header = AlignmentHeader.from_references(reference_names=["test_reference"], reference_lengths=[100000])
+    header = AlignmentHeader.from_references(
+        reference_names=["test_reference"], reference_lengths=[100000]
+    )
     aligned_seq = DEFAULT_ALIGNED_SEQ
     len_aligned_seq = len(aligned_seq)
     read = AlignedSegment(header=header)
@@ -87,7 +89,7 @@ class TestSoftclipDetection:
             + len(DEFAULT_ALIGNED_SEQ),
             sc_query=len(DEFAULT_ALIGNED_SEQ),
             sc_length=len(DEFAULT_SOFTCLIPPED_SEQ),
-            orientation=Orientation.forward
+            orientation=Orientation.forward,
         )
         assert (
             find_softclip_at_extremity(

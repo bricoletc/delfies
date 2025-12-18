@@ -20,9 +20,9 @@ from delfies import (
 )
 from delfies.interval_utils import Interval, get_contiguous_ranges
 from delfies.SAM_utils import (
+    SoftclippedReads,
     find_softclip_at_extremity,
     read_flag_matches,
-    SoftclippedReads,
 )
 from delfies.telomere_utils import has_softclipped_telo_array
 

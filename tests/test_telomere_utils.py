@@ -3,9 +3,15 @@ import pytest
 from delfies import Orientation
 from delfies.SAM_utils import SoftclippedRead
 from delfies.seq_utils import cyclic_shifts, randomly_substitute, rev_comp
-from delfies.telomere_utils import TELOMERE_SEQS, has_softclipped_telo_array
+from delfies.telomere_utils import (
+    TELOMERE_SEQS,
+    has_softclipped_telo_array,
+    record_telomere_additions,
+    setup_telomere_tents,
+)
+from tests import ClassWithTempFasta
 
-DEFAULT_ALIGNED_SEQ = "ATGCAAAAAAAAATTTGGA"
+DEFAULT_ALIGNED_SEQ = "ATGCAAACCCAAAATTGGA"
 DEFAULT_TELO_DICT = TELOMERE_SEQS["Nematoda"]
 DEFAULT_NON_TELO_UNIT_FORWARD = "AAAAAA"
 DEFAULT_MIN_TELO_ARRAY_SIZE = 3
@@ -20,8 +26,8 @@ DEFAULT_REVERSE_TELO_ARRAY = (
 def softclipped_read():
     return SoftclippedRead(
         sequence=DEFAULT_ALIGNED_SEQ,
-        reference_name="test_softclipped_read",
-        sc_ref=200,
+        reference_name="scaffold_1",
+        sc_ref=4,
         sc_query=len(DEFAULT_ALIGNED_SEQ),
         sc_length=0,
         orientation=Orientation.forward,
@@ -131,7 +137,7 @@ class TestFindSoftClippedTeloArraysInReads:
         self, softclipped_read
     ):
         mutated_telo_array = str()
-        for i in range(DEFAULT_MIN_TELO_ARRAY_SIZE):
+        for _ in range(DEFAULT_MIN_TELO_ARRAY_SIZE):
             mutated_telo_array += randomly_substitute(
                 DEFAULT_FORWARD_TELO, num_mutations=1
             )
@@ -153,7 +159,7 @@ class TestFindSoftClippedTeloArraysInReads:
 
     def test_max_edit_distance_threshold_is_applied(self, softclipped_read):
         mutated_telo_array = str()
-        for i in range(DEFAULT_MIN_TELO_ARRAY_SIZE):
+        for _ in range(DEFAULT_MIN_TELO_ARRAY_SIZE):
             mutated_telo_array += randomly_substitute(
                 DEFAULT_FORWARD_TELO, num_mutations=1
             )
@@ -165,3 +171,50 @@ class TestFindSoftClippedTeloArraysInReads:
                 DEFAULT_MIN_TELO_ARRAY_SIZE,
                 max_edit_distance=1,
             )
+
+
+class TestRecordTelomereAdditions(ClassWithTempFasta):
+    def test_record_telomere_addition_forward(self, softclipped_read):
+        reference = ">scaffold_1\nATGCTTTTT\n"
+        softclipped_read.sc_query = 4
+        fasta = self.make_fasta(reference)
+        result = record_telomere_additions(
+            [softclipped_read], telomere_unit_length=6, genome_fname=fasta
+        )
+        expected = setup_telomere_tents()
+        expected_tent = expected.new()
+        expected_tent.update(
+            contig="scaffold_1",
+            start=softclipped_read.sc_ref - 1,
+            end=softclipped_read.sc_ref,
+            template_nucleotide="C",
+            added_telomere=DEFAULT_ALIGNED_SEQ[
+                softclipped_read.sc_query : softclipped_read.sc_query + 6
+            ],
+        )
+        assert len(result) == 1
+        assert result[0] == expected_tent
+
+    def test_record_telomere_addition_reverse(self, softclipped_read):
+        reference = ">scaffold_1\nCCCCCTTGGA\n"
+        softclipped_read.sc_query = (
+            len(DEFAULT_ALIGNED_SEQ) - 6
+        )  # 1 + the length of the common sequence with 'DEFAULT_ALIGNED_SEQ', that, is 'TTGGA'
+        softclipped_read.orientation = Orientation.reverse
+        fasta = self.make_fasta(reference)
+        result = record_telomere_additions(
+            [softclipped_read], telomere_unit_length=6, genome_fname=fasta
+        )
+        expected = setup_telomere_tents()
+        expected_tent = expected.new()
+        # Note the template_nucleotide and added_telomere are expressed in reverse complement
+        # of the sequence in 'DEFAULT_ALIGNED_SEQ', due to read's reverse orientation.
+        expected_tent.update(
+            contig="scaffold_1",
+            start=softclipped_read.sc_ref + 1,
+            end=softclipped_read.sc_ref + 2,
+            template_nucleotide="A",
+            added_telomere="TTTTGG",
+        )
+        assert len(result) == 1
+        assert result[0] == expected_tent

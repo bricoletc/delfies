@@ -1,7 +1,7 @@
-from typing import Tuple
 import itertools as it
 import multiprocessing as mp
 from pathlib import Path
+from typing import Tuple
 
 import rich_click as click
 from pybedtools import BedTool
@@ -31,7 +31,11 @@ from delfies.SAM_utils import (
     SoftclippedReads,
 )
 from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
-from delfies.telomere_utils import TELOMERE_SEQS, remove_breakpoints_in_telomere_arrays, record_telomere_additions
+from delfies.telomere_utils import (
+    TELOMERE_SEQS,
+    record_telomere_additions,
+    remove_breakpoints_in_telomere_arrays,
+)
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -309,7 +313,9 @@ def main(
         genome_fname, identified_breakpoints, odirname, seq_window_size
     )
 
-    telomere_additions = record_telomere_additions(all_reads_for_telomere_addition, len(telo_forward_seq), genome_fname)
+    telomere_additions = record_telomere_additions(
+        all_reads_for_telomere_addition, len(telo_forward_seq), genome_fname
+    )
     telomere_addition_ofname = odirname / "telomere_additions.tsv"
     with telomere_addition_ofname.open("w") as ofstream:
         print(telomere_additions, file=ofstream)

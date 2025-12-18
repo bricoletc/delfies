@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import reduce
-from typing import Optional, List
+from typing import List, Optional
 
 from pysam import CSOFT_CLIP, AlignedSegment
 
@@ -64,7 +64,9 @@ def find_softclip_at_extremity(
     both reference and read (query). If in forward orientation in the read,
     no adjustment is needed, and if in reverse orientation, we subtract one.
     """
-    result = SoftclippedRead(read.query_sequence, read.reference_name, None, None, None, orientation)
+    result = SoftclippedRead(
+        read.query_sequence, read.reference_name, None, None, None, orientation
+    )
     if orientation is Orientation.forward:
         if read.cigartuples[-1][0] == CSOFT_CLIP:
             result.sc_ref = read.reference_end

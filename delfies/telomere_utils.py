@@ -1,11 +1,11 @@
-from edlib import align as edlib_align
 from datasci import Tents
+from edlib import align as edlib_align
 from pyfastx import Fasta
 
 from delfies import Orientation, PutativeBreakpoints
 from delfies.interval_utils import Interval
 from delfies.SAM_utils import SoftclippedRead, SoftclippedReads
-from delfies.seq_utils import find_all_occurrences_in_genome
+from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
 
 TELOMERE_SEQS = {
     "Nematoda": {Orientation.forward: "TTAGGC", Orientation.reverse: "GCCTAA"}
@@ -67,7 +67,7 @@ def remove_breakpoints_in_telomere_arrays(
 
 
 def setup_telomere_tents() -> Tents:
-    tents_header = ["contig", "position", "template_nucleotide", "added_telomere"]
+    tents_header = ["contig", "start", "end", "template_nucleotide", "added_telomere"]
     tents = Tents(header=tents_header)
     return tents
 
@@ -75,7 +75,7 @@ def setup_telomere_tents() -> Tents:
 def record_telomere_additions(
     reads_for_telomere_additions: SoftclippedReads,
     telomere_unit_length: int,
-    genome_fname: str
+    genome_fname: str,
 ):
     genome = Fasta(genome_fname)
     telomere_tents = setup_telomere_tents()
@@ -83,15 +83,27 @@ def record_telomere_additions(
         sc_query = read.sc_query
         if read.orientation is Orientation.forward:
             added_telomere = read.sequence[sc_query : sc_query + telomere_unit_length]
+            ref_position_one_based = read.sc_ref
+            template_nucleotide = genome.fetch(
+                read.reference_name, (ref_position_one_based, ref_position_one_based)
+            )
         else:
-            added_telomere = read.sequence[
-                sc_query + 1 - telomere_unit_length : sc_query + 1
-            ]
+            added_telomere = rev_comp(
+                read.sequence[sc_query + 1 - telomere_unit_length : sc_query + 1]
+            )
+            ref_position_one_based = read.sc_ref + 2
+            template_nucleotide = rev_comp(
+                genome.fetch(
+                    read.reference_name,
+                    (ref_position_one_based, ref_position_one_based),
+                )
+            )
         new_tent = telomere_tents.new()
         new_tent.update(
             contig=read.reference_name,
-            position=read.sc_ref - 1,
-            template_nucleotide = genome.fetch(read.reference_name, (read.sc_ref - 1, read.sc_ref)),
+            start=ref_position_one_based - 1,
+            end=ref_position_one_based,
+            template_nucleotide=template_nucleotide,
             added_telomere=added_telomere,
         )
         telomere_tents.add(new_tent)
