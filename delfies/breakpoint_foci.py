@@ -5,7 +5,7 @@ location at which 1+ reads are found bearing softclips compatible with a PDE bre
 
 from collections import defaultdict
 from itertools import chain as it_chain
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from datasci import Tent, Tents
 from pysam import AlignedSegment, AlignmentFile
@@ -19,7 +19,11 @@ from delfies import (
     PutativeBreakpoint,
 )
 from delfies.interval_utils import Interval, get_contiguous_ranges
-from delfies.SAM_utils import find_softclip_at_extremity, read_flag_matches
+from delfies.SAM_utils import (
+    find_softclip_at_extremity,
+    read_flag_matches,
+    SoftclippedReads,
+)
 from delfies.telomere_utils import has_softclipped_telo_array
 
 READ_SUPPORTS = [
@@ -55,7 +59,8 @@ def record_softclips(
     breakpoint_foci_positions,
     detection_params: BreakpointDetectionParams,
     seq_region: Interval,
-) -> None:
+) -> SoftclippedReads:
+    reads_for_telomere_additions = list()
     for read_support in READ_SUPPORTS:
         orientation = Orientation[read_support.split(ID_DELIM)[1]]
         softclipped_read = find_softclip_at_extremity(aligned_read, orientation)
@@ -106,12 +111,16 @@ def record_softclips(
             )
             new_tent[read_support] += 1
             breakpoint_foci_positions[match_tent_key] = new_tent
+        if detection_params.breakpoint_type is BreakpointType.S2G:
+            reads_for_telomere_additions.append(softclipped_read)
+    return reads_for_telomere_additions
 
 
 def find_breakpoint_foci(
     detection_params: BreakpointDetectionParams,
     seq_region: Interval,
-) -> Tents:
+) -> Tuple[Tents, SoftclippedReads]:
+    reads_for_telomere_additions = list()
     breakpoint_foci = setup_breakpoint_tents()
     breakpoint_foci_positions = {}
     contig_name = seq_region.name
@@ -127,12 +136,14 @@ def find_breakpoint_foci(
             continue
         if read_flag_matches(aligned_read, detection_params.read_filter_flag):
             continue
-        record_softclips(
-            aligned_read,
-            breakpoint_foci,
-            breakpoint_foci_positions,
-            detection_params,
-            seq_region,
+        reads_for_telomere_additions.extend(
+            record_softclips(
+                aligned_read,
+                breakpoint_foci,
+                breakpoint_foci_positions,
+                detection_params,
+                seq_region,
+            )
         )
     # Filter for minimum support
     breakpoint_foci_positions = {
@@ -143,7 +154,7 @@ def find_breakpoint_foci(
     # Expand to a few positions before and after putative breakpoints: allows users to
     # assess changes in coverage around breakpoints (using the corresponding output tsv)
     positions_to_commit = set()
-    for match_key, focus_tent in breakpoint_foci_positions.items():
+    for focus_tent in breakpoint_foci_positions.values():
         committed_position = focus_tent["start"]
         positions_to_commit.update(
             range(committed_position - 2, committed_position + 3)
@@ -156,7 +167,7 @@ def find_breakpoint_foci(
         bam_fstream,
         detection_params,
     )
-    return breakpoint_foci
+    return breakpoint_foci, reads_for_telomere_additions
 
 
 def record_read_depth_at_breakpoint_foci(

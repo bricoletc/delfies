@@ -1,5 +1,5 @@
 import pytest
-from pysam import CMATCH, CSOFT_CLIP, AlignedSegment
+from pysam import CMATCH, CSOFT_CLIP, AlignedSegment, AlignmentHeader
 
 from delfies import Orientation
 from delfies.SAM_utils import (
@@ -15,11 +15,13 @@ DEFAULT_SOFTCLIPPED_SEQ = "TATAGGTAACATCGCGGCATTCTACGG"
 
 @pytest.fixture
 def pysam_basic_read():
+    header = AlignmentHeader.from_references(reference_names=["test_reference"], reference_lengths=[100000])
     aligned_seq = DEFAULT_ALIGNED_SEQ
     len_aligned_seq = len(aligned_seq)
-    read = AlignedSegment()
+    read = AlignedSegment(header=header)
     read.query_sequence = aligned_seq
     read.query_name = "test_query"
+    read.reference_name = "test_reference"
     read.reference_start = 200
     read.cigartuples = [(CMATCH, len_aligned_seq)]
     return read
@@ -80,11 +82,12 @@ class TestSoftclipDetection:
         )
         assert result_forward == SoftclippedRead(
             sequence=pysam_read_with_3prime_softclips.query_sequence,
-            name=pysam_read_with_3prime_softclips.query_name,
+            reference_name=pysam_read_with_3prime_softclips.reference_name,
             sc_ref=pysam_read_with_3prime_softclips.reference_start
             + len(DEFAULT_ALIGNED_SEQ),
             sc_query=len(DEFAULT_ALIGNED_SEQ),
             sc_length=len(DEFAULT_SOFTCLIPPED_SEQ),
+            orientation=Orientation.forward
         )
         assert (
             find_softclip_at_extremity(
@@ -99,10 +102,11 @@ class TestSoftclipDetection:
         )
         assert result_reverse == SoftclippedRead(
             sequence=pysam_read_with_5prime_softclips.query_sequence,
-            name=pysam_read_with_5prime_softclips.query_name,
+            reference_name=pysam_read_with_5prime_softclips.reference_name,
             sc_ref=pysam_read_with_5prime_softclips.reference_start - 1,
             sc_query=len(DEFAULT_SOFTCLIPPED_SEQ) - 1,
             sc_length=len(DEFAULT_SOFTCLIPPED_SEQ),
+            orientation=Orientation.reverse,
         )
         assert (
             find_softclip_at_extremity(

@@ -20,10 +20,11 @@ DEFAULT_REVERSE_TELO_ARRAY = (
 def softclipped_read():
     return SoftclippedRead(
         sequence=DEFAULT_ALIGNED_SEQ,
-        name="test_softclipped_read",
+        reference_name="test_softclipped_read",
         sc_ref=200,
         sc_query=len(DEFAULT_ALIGNED_SEQ),
         sc_length=0,
+        orientation=Orientation.forward,
     )
 
 

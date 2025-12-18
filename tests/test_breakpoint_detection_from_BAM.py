@@ -135,7 +135,7 @@ def detection_params():
 
 def test_forward_breakpoint_S2G(read_generator, genome_interval, detection_params):
     detection_params.bam_fname = read_generator.write_BAM()
-    foci = find_breakpoint_foci(detection_params, genome_interval)
+    foci, _ = find_breakpoint_foci(detection_params, genome_interval)
     filtered_foci = [
         elem for elem in foci if elem.start == EXPECTED_BREAKPOINT_POSITION
     ]

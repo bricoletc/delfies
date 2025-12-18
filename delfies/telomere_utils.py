@@ -1,8 +1,10 @@
 from edlib import align as edlib_align
+from datasci import Tents
+from pyfastx import Fasta
 
 from delfies import Orientation, PutativeBreakpoints
 from delfies.interval_utils import Interval
-from delfies.SAM_utils import SoftclippedRead
+from delfies.SAM_utils import SoftclippedRead, SoftclippedReads
 from delfies.seq_utils import find_all_occurrences_in_genome
 
 TELOMERE_SEQS = {
@@ -62,3 +64,35 @@ def remove_breakpoints_in_telomere_arrays(
         if len(telomere_arrays_overlapping_breakpoint) == 0:
             result.append(putative_breakpoint)
     return result
+
+
+def setup_telomere_tents() -> Tents:
+    tents_header = ["contig", "position", "template_nucleotide", "added_telomere"]
+    tents = Tents(header=tents_header)
+    return tents
+
+
+def record_telomere_additions(
+    reads_for_telomere_additions: SoftclippedReads,
+    telomere_unit_length: int,
+    genome_fname: str
+):
+    genome = Fasta(genome_fname)
+    telomere_tents = setup_telomere_tents()
+    for read in reads_for_telomere_additions:
+        sc_query = read.sc_query
+        if read.orientation is Orientation.forward:
+            added_telomere = read.sequence[sc_query : sc_query + telomere_unit_length]
+        else:
+            added_telomere = read.sequence[
+                sc_query + 1 - telomere_unit_length : sc_query + 1
+            ]
+        new_tent = telomere_tents.new()
+        new_tent.update(
+            contig=read.reference_name,
+            position=read.sc_ref - 1,
+            template_nucleotide = genome.fetch(read.reference_name, (read.sc_ref - 1, read.sc_ref)),
+            added_telomere=added_telomere,
+        )
+        telomere_tents.add(new_tent)
+    return telomere_tents

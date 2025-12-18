@@ -1,3 +1,4 @@
+from typing import Tuple
 import itertools as it
 import multiprocessing as mp
 from pathlib import Path
@@ -27,9 +28,10 @@ from delfies.SAM_utils import (
     DEFAULT_MIN_MAPQ,
     DEFAULT_READ_FILTER_FLAG,
     DEFAULT_READ_FILTER_NAMES,
+    SoftclippedReads,
 )
 from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
-from delfies.telomere_utils import TELOMERE_SEQS, remove_breakpoints_in_telomere_arrays
+from delfies.telomere_utils import TELOMERE_SEQS, remove_breakpoints_in_telomere_arrays, record_telomere_additions
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -67,7 +69,7 @@ click.rich_click.OPTION_GROUPS = {
 
 def run_breakpoint_detection(
     detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
-) -> PutativeBreakpoints:
+) -> Tuple[PutativeBreakpoints, SoftclippedReads]:
     with mp.Pool(processes=threads) as pool:
         pooled_results = pool.starmap(
             find_breakpoint_foci,
@@ -76,9 +78,11 @@ def run_breakpoint_detection(
                 seq_regions,
             ),
         )
+    all_reads_for_telomere_addition = list()
     all_foci = setup_breakpoint_tents()
-    for result in pooled_results:
-        all_foci.extend(result)
+    for foci_pool, read_pool in pooled_results:
+        all_foci.extend(foci_pool)
+        all_reads_for_telomere_addition.extend(read_pool)
     foci_tsv = f"{detection_params.ofname_base}.tsv"
     with open(foci_tsv, "w") as ofstream:
         print(all_foci, file=ofstream)
@@ -93,11 +97,11 @@ def run_breakpoint_detection(
     )
     for m_f in putative_breakpoints:
         m_f.breakpoint_type = detection_params.breakpoint_type
-    return putative_breakpoints
+    return putative_breakpoints, all_reads_for_telomere_addition
 
 
 def write_breakpoint_bed(
-    putative_breakpoints: PutativeBreakpoints, odirname: str
+    putative_breakpoints: PutativeBreakpoints, odirname: Path
 ) -> None:
     breakpoint_bed = odirname / "breakpoint_locations.bed"
     with breakpoint_bed.open("w") as ofstream:
@@ -266,6 +270,7 @@ def main(
     searched_telo_unit = detection_params.telomere_seqs[Orientation.forward]
     searched_telo_array = searched_telo_unit * detection_params.telo_array_size
     interval_window_size = len(searched_telo_array)
+    all_reads_for_telomere_addition = list()
     for breakpoint_type_to_analyse in breakpoint_types_to_analyse:
         detection_params.breakpoint_type = breakpoint_type_to_analyse
         detection_params.ofname_base = (
@@ -279,9 +284,10 @@ def main(
                 seq_regions,
                 interval_window_size,
             )
-        candidate_breakpoints = run_breakpoint_detection(
+        candidate_breakpoints, reads_for_telomere_addition = run_breakpoint_detection(
             detection_params, seq_regions, threads
         )
+        all_reads_for_telomere_addition.extend(reads_for_telomere_addition)
 
         if (
             breakpoint_type_to_analyse is BreakpointType.S2G
@@ -302,6 +308,11 @@ def main(
     write_breakpoint_sequences(
         genome_fname, identified_breakpoints, odirname, seq_window_size
     )
+
+    telomere_additions = record_telomere_additions(all_reads_for_telomere_addition, len(telo_forward_seq), genome_fname)
+    telomere_addition_ofname = odirname / "telomere_additions.tsv"
+    with telomere_addition_ofname.open("w") as ofstream:
+        print(telomere_additions, file=ofstream)
 
 
 if __name__ == "__main__":

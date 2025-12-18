@@ -1,4 +1,5 @@
 from typing import List
+from pathlib import Path
 
 from pyfastx import Fasta
 
@@ -33,7 +34,7 @@ def extract_breakpoint_sequences(
 def write_breakpoint_sequences(
     genome_fname: str,
     maximal_foci: PutativeBreakpoints,
-    odirname: str,
+    odirname: Path,
     seq_window_size: int,
 ) -> None:
     genome = Fasta(genome_fname)
