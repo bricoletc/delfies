@@ -14,6 +14,17 @@ through the issue tracker first, to coordinate with others.
 After forking the repository and making changes, open a 
 [pull request](https://github.com/bricoletc/delfies/pulls) so we can review it together.
 
+## Development environment
+
+```sh
+cd <delfies_directory>
+uv venv
+. .venv/bin/activate
+uv pip install .
+```
+
+Now you can make your changes with access to the required libraries.
+
 ## Checks before opening pull requests
 
 Before creating the pull request, please check that your code runs past
