@@ -79,7 +79,7 @@ def find_all_occurrences_in_genome(
             relative_to_absolute = 0
             target_seq = genome_fasta[seq_region.name]
         chrom_length = len(genome_fasta[seq_region.name])
-        for orientation, pattern in patterns.items():
+        for pattern in patterns.values():
             match = None
             for match in pattern.finditer(str(target_seq)):
                 new_interval = Interval(

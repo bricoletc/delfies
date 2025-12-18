@@ -1,16 +1,22 @@
 from dataclasses import dataclass
 from itertools import groupby
 from operator import itemgetter
-from typing import List, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 from delfies import REGION_DELIM1, REGION_DELIM2
 
 
 @dataclass
 class Interval:
+    """
+    Semi-closed intervals, as per BED standard:
+        start: 0-based inclusive
+        end: 0-based exclusive == 1-based inclusive
+    """
+
     name: str
-    start: int = None
-    end: int = None
+    start: Optional[int] = None
+    end: Optional[int] = None
 
     def spans(self, query_pos: int) -> bool:
         if not self.has_coordinates():

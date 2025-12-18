@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Tuple
 
 import rich_click as click
+from datasci import Tents
 from pybedtools import BedTool
 from pysam import AlignmentFile
 
@@ -31,11 +32,7 @@ from delfies.SAM_utils import (
     SoftclippedReads,
 )
 from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
-from delfies.telomere_utils import (
-    TELOMERE_SEQS,
-    record_telomere_additions,
-    remove_breakpoints_in_telomere_arrays,
-)
+from delfies.telomere_utils import TELOMERE_SEQS, record_telomere_additions
 
 click.rich_click.OPTION_GROUPS = {
     "delfies": [
@@ -71,8 +68,43 @@ click.rich_click.OPTION_GROUPS = {
 }
 
 
+def filter_out_tents_intervals(input_tents: Tents, target_intervals: Intervals) -> None:
+    to_remove = set()
+    for i, input_tent in enumerate(input_tents):
+        input_interval = Interval(input_tent.contig, input_tent.start, input_tent.end)
+        for target_interval in target_intervals:
+            if target_interval.overlaps_or_touches(input_interval):
+                to_remove.add(i)
+                break
+    input_tents.drop_elements(to_remove)
+
+
+def filter_out_read_intervals(
+    input_reads: SoftclippedReads, target_intervals: Intervals
+) -> SoftclippedReads:
+    result = list()
+    for read in input_reads:
+        if read.orientation is Orientation.forward:
+            input_interval = Interval(read.reference_name, read.sc_ref - 1, read.sc_ref)
+        else:
+            input_interval = Interval(
+                read.reference_name, read.sc_ref + 1, read.sc_ref + 2
+            )
+        keep_read = True
+        for target_interval in target_intervals:
+            if target_interval.overlaps_or_touches(input_interval):
+                keep_read = False
+                break
+        if keep_read:
+            result.append(read)
+    return result
+
+
 def run_breakpoint_detection(
-    detection_params: BreakpointDetectionParams, seq_regions: Intervals, threads
+    detection_params: BreakpointDetectionParams,
+    seq_regions: Intervals,
+    threads: int,
+    telomere_array_regions: Intervals,
 ) -> Tuple[PutativeBreakpoints, SoftclippedReads]:
     with mp.Pool(processes=threads) as pool:
         pooled_results = pool.starmap(
@@ -87,6 +119,14 @@ def run_breakpoint_detection(
     for foci_pool, read_pool in pooled_results:
         all_foci.extend(foci_pool)
         all_reads_for_telomere_addition.extend(read_pool)
+    if (
+        detection_params.breakpoint_type is BreakpointType.S2G
+        and not detection_params.keep_telomeric_breakpoints
+    ):
+        filter_out_tents_intervals(all_foci, telomere_array_regions)
+        all_reads_for_telomere_addition = filter_out_read_intervals(
+            all_reads_for_telomere_addition, telomere_array_regions
+        )
     foci_tsv = f"{detection_params.ofname_base}.tsv"
     with open(foci_tsv, "w") as ofstream:
         print(all_foci, file=ofstream)
@@ -275,6 +315,12 @@ def main(
     searched_telo_array = searched_telo_unit * detection_params.telo_array_size
     interval_window_size = len(searched_telo_array)
     all_reads_for_telomere_addition = list()
+    telomere_array_regions = find_all_occurrences_in_genome(
+        searched_telo_array,
+        genome_fname,
+        seq_regions,
+        interval_window_size,
+    )
     for breakpoint_type_to_analyse in breakpoint_types_to_analyse:
         detection_params.breakpoint_type = breakpoint_type_to_analyse
         detection_params.ofname_base = (
@@ -282,30 +328,12 @@ def main(
         )
         if breakpoint_type_to_analyse is BreakpointType.G2S:
             # Restrict regions to analyse to those containing telomere arrays
-            seq_regions = find_all_occurrences_in_genome(
-                searched_telo_array,
-                genome_fname,
-                seq_regions,
-                interval_window_size,
-            )
+            seq_regions = telomere_array_regions
         candidate_breakpoints, reads_for_telomere_addition = run_breakpoint_detection(
-            detection_params, seq_regions, threads
+            detection_params, seq_regions, threads, telomere_array_regions
         )
         all_reads_for_telomere_addition.extend(reads_for_telomere_addition)
-
-        if (
-            breakpoint_type_to_analyse is BreakpointType.S2G
-            and not detection_params.keep_telomeric_breakpoints
-        ):
-            # Excludes (read-based) telomere extensions in existing (genomic) telomere arrays
-            identified_breakpoints += remove_breakpoints_in_telomere_arrays(
-                genome_fname,
-                searched_telo_array,
-                interval_window_size,
-                candidate_breakpoints,
-            )
-        else:
-            identified_breakpoints += candidate_breakpoints
+        identified_breakpoints.extend(candidate_breakpoints)
 
     write_breakpoint_bed(identified_breakpoints, odirname)
     seq_window_size = max(seq_window_size, 1)
@@ -314,7 +342,9 @@ def main(
     )
 
     telomere_additions = record_telomere_additions(
-        all_reads_for_telomere_addition, len(telo_forward_seq), genome_fname
+        all_reads_for_telomere_addition,
+        len(telo_forward_seq),
+        genome_fname,
     )
     telomere_addition_ofname = odirname / "telomere_additions.tsv"
     with telomere_addition_ofname.open("w") as ofstream:

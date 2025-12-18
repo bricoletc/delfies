@@ -2,10 +2,9 @@ from datasci import Tents
 from edlib import align as edlib_align
 from pyfastx import Fasta
 
-from delfies import Orientation, PutativeBreakpoints
-from delfies.interval_utils import Interval
+from delfies import Orientation
 from delfies.SAM_utils import SoftclippedRead, SoftclippedReads
-from delfies.seq_utils import find_all_occurrences_in_genome, rev_comp
+from delfies.seq_utils import rev_comp
 
 TELOMERE_SEQS = {
     "Nematoda": {Orientation.forward: "TTAGGC", Orientation.reverse: "GCCTAA"}
@@ -39,33 +38,6 @@ def has_softclipped_telo_array(
     return found_telo_array
 
 
-def remove_breakpoints_in_telomere_arrays(
-    genome_fname: str,
-    searched_telo_array: str,
-    interval_window_size: int,
-    putative_breakpoints: PutativeBreakpoints,
-) -> PutativeBreakpoints:
-    result = list()
-    telo_array_size = len(searched_telo_array)
-    for putative_breakpoint in putative_breakpoints:
-        region_to_search = Interval(
-            putative_breakpoint.focus.contig,
-            max(
-                putative_breakpoint.interval[0]
-                - telo_array_size
-                - interval_window_size,
-                0,
-            ),
-            putative_breakpoint.interval[1] + telo_array_size + interval_window_size,
-        )
-        telomere_arrays_overlapping_breakpoint = find_all_occurrences_in_genome(
-            searched_telo_array, genome_fname, [region_to_search], interval_window_size
-        )
-        if len(telomere_arrays_overlapping_breakpoint) == 0:
-            result.append(putative_breakpoint)
-    return result
-
-
 def setup_telomere_tents() -> Tents:
     tents_header = ["contig", "start", "end", "template_nucleotide", "added_telomere"]
     tents = Tents(header=tents_header)
@@ -76,7 +48,7 @@ def record_telomere_additions(
     reads_for_telomere_additions: SoftclippedReads,
     telomere_unit_length: int,
     genome_fname: str,
-):
+) -> Tents:
     genome = Fasta(genome_fname)
     telomere_tents = setup_telomere_tents()
     for read in reads_for_telomere_additions:
