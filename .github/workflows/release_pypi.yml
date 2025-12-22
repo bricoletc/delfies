@@ -20,7 +20,7 @@ jobs:
     - name: Check the project installs and runs
       run:  make install-ci
     - name: Check the tests pass and generate coverage report
-      run: make coverage
+      run:  uv run pytest --cov-report=xml --cov=delfies --cov-branch
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
