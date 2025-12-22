@@ -1,6 +1,6 @@
 [project]
 name = "delfies"
-version = "0.10.0"
+version = "0.11.0"
 description = "delfies is a tool for the detection of DNA Elimination breakpoints"
 authors = [
     { name = "Brice Letcher", email = "brice.letcher@ens-lyon.fr" },
