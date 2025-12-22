@@ -230,6 +230,7 @@ def detection_params():
     }
     return BreakpointDetectionParams(
         bam_fname="NA",
+        sample_name=".",
         telomere_seqs=telomere_seqs,
         telo_array_size=DEFAULT_TELO_ARRAY_SIZE,
         max_edit_distance=0,

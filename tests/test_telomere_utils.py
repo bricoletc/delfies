@@ -179,7 +179,10 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
         softclipped_read.sc_query = 4
         fasta = self.make_fasta(reference)
         result = record_telomere_additions(
-            [softclipped_read], telomere_unit_length=6, genome_fname=fasta
+            [softclipped_read],
+            telomere_unit_length=6,
+            genome_fname=fasta,
+            sample_name="test_sample",
         )
         expected = setup_telomere_tents()
         expected_tent = expected.new()
@@ -191,6 +194,7 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
             added_telomere=DEFAULT_ALIGNED_SEQ[
                 softclipped_read.sc_query : softclipped_read.sc_query + 6
             ],
+            sample_name="test_sample",
         )
         assert len(result) == 1
         assert result[0] == expected_tent
@@ -203,7 +207,10 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
         softclipped_read.orientation = Orientation.reverse
         fasta = self.make_fasta(reference)
         result = record_telomere_additions(
-            [softclipped_read], telomere_unit_length=6, genome_fname=fasta
+            [softclipped_read],
+            telomere_unit_length=6,
+            genome_fname=fasta,
+            sample_name="test_sample",
         )
         expected = setup_telomere_tents()
         expected_tent = expected.new()
@@ -215,6 +222,7 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
             end=softclipped_read.sc_ref + 2,
             template_nucleotide="A",
             added_telomere="TTTTGG",
+            sample_name="test_sample",
         )
         assert len(result) == 1
         assert result[0] == expected_tent

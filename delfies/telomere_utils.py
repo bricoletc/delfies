@@ -39,7 +39,14 @@ def has_softclipped_telo_array(
 
 
 def setup_telomere_tents() -> Tents:
-    tents_header = ["contig", "start", "end", "template_nucleotide", "added_telomere"]
+    tents_header = [
+        "contig",
+        "start",
+        "end",
+        "template_nucleotide",
+        "added_telomere",
+        "sample_name",
+    ]
     tents = Tents(header=tents_header)
     return tents
 
@@ -48,6 +55,7 @@ def record_telomere_additions(
     reads_for_telomere_additions: SoftclippedReads,
     telomere_unit_length: int,
     genome_fname: str,
+    sample_name: str,
 ) -> Tents:
     genome = Fasta(genome_fname)
     telomere_tents = setup_telomere_tents()
@@ -77,6 +85,7 @@ def record_telomere_additions(
             end=ref_position_one_based,
             template_nucleotide=template_nucleotide,
             added_telomere=added_telomere,
+            sample_name=sample_name,
         )
         telomere_tents.add(new_tent)
     return telomere_tents

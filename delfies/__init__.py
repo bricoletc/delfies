@@ -34,6 +34,7 @@ all_breakpoint_types = list(BreakpointType)
 @dataclass
 class BreakpointDetectionParams:
     bam_fname: str
+    sample_name: str
     telomere_seqs: dict
     telo_array_size: int
     max_edit_distance: int

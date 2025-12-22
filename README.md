@@ -66,7 +66,7 @@ pip install ./delfies
 `delfies` is designed to work with both Illumina short reads and ONT or PacBio
 long reads. Long reads are better for finding breakpoints in more repetitive
 regions of the genome. A high fraction of sequenced bases with a quality \>Q20
-is desirable (e.g. \>70%). I found `delfies` worked on recent data from all three
+is desirable (e.g. \>70%). We found `delfies` worked on recent data from all three
 sequencing technologies: see [test run below](#test_run).
 
 ## Aligners
@@ -79,7 +79,7 @@ for Nanopore data).
 
 # <a name="test_run"></a> Test run with real data
 
-I provide a processed subset of publicly-available data here: 
+We provide a processed subset of publicly-available data here: 
 https://doi.org/10.5281/zenodo.14101797. 
 
 The data consist of a 2kbp region of the assembled genome of *Oscheius onirici*
@@ -120,7 +120,7 @@ delfies --help
 * [Region selection]: You can select a specific region to focus on, specified as a string or as a BED file.
 * [Telomeres] 
     * Specify the telomere sequence for your organism using `--telo_forward_seq`. 
-      If you're unsure, I recommend the tool [telomeric-identifier](https://github.com/tolkit/telomeric-identifier) for finding out.
+      If you're unsure, we recommend the tool [telomeric-identifier](https://github.com/tolkit/telomeric-identifier) for finding out.
     * By default, `delfies` discards breakpoints occurring inside telomere arrays, as they in theory correspond to false positives
       (cutting + telomere addition at existing telomeres). You can keep these breakpoints with `--keep_telomeric_breakpoints`.
 * [Aligned reads]
@@ -132,13 +132,14 @@ delfies --help
 The two main outputs of `delfies` are:
 
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
-   elimination breakpoints. 
+   elimination breakpoints. The six first columns are the standard BED columns; the seventh 
+   corresponds to '--sample_name' provided at CLI.
 - `breakpoint_sequences.fasta`: a FASTA-formatted file containing the sequences 
    of identified elimination breakpoints
 
 ## <a name="validation"></a> Validating breakpoints
 
-**I highly recommend visualising your results**! E.g., by loading your input
+**We highly recommend visualising your results**! E.g., by loading your input
 fasta and BAM and output `delfies`' output `breakpoint_locations.bed` in
 [IGV](https://github.com/igvteam/igv).
 

@@ -39,7 +39,7 @@ click.rich_click.OPTION_GROUPS = {
     "delfies": [
         {
             "name": "Generic",
-            "options": ["--help", "--version", "--threads"],
+            "options": ["--help", "--version", "--threads", "--sample_name"],
         },
         {
             "name": "Region selection",
@@ -125,7 +125,7 @@ def run_breakpoint_detection(
 
 
 def write_breakpoint_bed(
-    putative_breakpoints: PutativeBreakpoints, odirname: Path
+    putative_breakpoints: PutativeBreakpoints, sample_name: str, odirname: Path
 ) -> None:
     breakpoint_bed = odirname / "breakpoint_locations.bed"
     with breakpoint_bed.open("w") as ofstream:
@@ -139,6 +139,7 @@ def write_breakpoint_bed(
                 breakpoint_name,
                 putative_breakpoint.max_value,
                 strand,
+                sample_name,
             ]
             ofstream.write("\t".join(map(str, out_line)) + "\n")
 
@@ -147,6 +148,13 @@ def write_breakpoint_bed(
 @click.argument("genome_fname", type=click.Path(exists=True))
 @click.argument("bam_fname", type=click.Path(exists=True))
 @click.argument("odirname")
+@click.option(
+    "--sample_name",
+    type=str,
+    help="The name of your sample; will appear in a dedicated column in all output TSV files",
+    default=".",
+    show_default=True,
+)
 @click.option("--seq_region", type=str, help=REGION_CLICK_HELP)
 @click.option(
     "--bed",
@@ -230,6 +238,7 @@ def main(
     genome_fname,
     bam_fname,
     odirname,
+    sample_name,
     seq_region,
     bed,
     telo_forward_seq,
@@ -275,6 +284,7 @@ def main(
     clustering_threshold = max(clustering_threshold, 0)
     detection_params = BreakpointDetectionParams(
         bam_fname=bam_fname,
+        sample_name=sample_name,
         telomere_seqs=telomere_seqs,
         telo_array_size=telo_array_size,
         max_edit_distance=telo_max_edit_distance,
@@ -315,7 +325,7 @@ def main(
         all_reads_for_telomere_addition.extend(reads_for_telomere_addition)
         identified_breakpoints.extend(candidate_breakpoints)
 
-    write_breakpoint_bed(identified_breakpoints, odirname)
+    write_breakpoint_bed(identified_breakpoints, sample_name, odirname)
     seq_window_size = max(seq_window_size, 1)
     write_breakpoint_sequences(
         genome_fname, identified_breakpoints, odirname, seq_window_size
@@ -325,6 +335,7 @@ def main(
         all_reads_for_telomere_addition,
         len(telo_forward_seq),
         genome_fname,
+        sample_name,
     )
     telomere_addition_ofname = odirname / "telomere_additions.tsv"
     with telomere_addition_ofname.open("w") as ofstream:

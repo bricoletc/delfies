@@ -48,12 +48,19 @@
     - Some additional information is provided, e.g. the position of the breakpoint 
       and the number of reads supporting the breakpoint ('num_telo_containing_softclips')
 
-- `breakpoint_foci_<breakpoint_type>.tsv`: a tab-separated-value file containing the 
+- `breakpoint_foci_<breakpoint_type>.tsv`: a tab-separated file containing the 
    location of all putative breakpoints, the read support for each breakpoint (in both 
    forward and reverse orientation), and the total read depth at the putative breakpoint, 
    plus in a window around each breakpoint. This file enables assessing how sharp 
    a breakpoint is, and accessing all the individual breakpoints that may have been 
    clustered in `breakpoint_locations.bed`.
+
+- `telomere_additions.tsv`: a tab-separated file containing the locations of all reads
+  containing telomere extensions (in 'S2G' mode only), which nucleotide in the reference 
+  genome precedes the telomeric softclips in the read (column 'template_nucleotide'), 
+  and which telomeric unit was added, i.e., starts the softclips in the read (column 'added_telomere').
+  This enables analysing how the telomerase operates, i.e. what template it preferentially uses, if at all,
+  and how it extends it.
 
 ## Applications
 

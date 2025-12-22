@@ -38,6 +38,7 @@ def setup_breakpoint_tents() -> Tents:
         "end",
         "read_depth",
         "breakpoint_type",
+        "sample_name",
     ] + READ_SUPPORTS
     tents = Tents(header=tents_header, required_header=tents_header[:5], unset_value=0)
     return tents
@@ -108,6 +109,7 @@ def record_softclips(
                 start=pos_to_commit,
                 end=pos_to_commit + 1,
                 breakpoint_type=str(detection_params.breakpoint_type),
+                sample_name=detection_params.sample_name,
             )
             new_tent[read_support] += 1
             breakpoint_foci_positions[match_tent_key] = new_tent
@@ -216,6 +218,8 @@ def record_read_depth_at_breakpoint_foci(
                     start=ref_pos,
                     end=ref_pos + 1,
                     read_depth=read_depth,
+                    breakpoint_type=str(detection_params.breakpoint_type),
+                    sample_name=detection_params.sample_name,
                 )
                 breakpoint_foci.add(new_tent)
 
