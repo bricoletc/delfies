@@ -21,7 +21,7 @@ DEFAULT_CHROM = "chr1"
 DEFAULT_CHROM_LENGTH = 10e03
 DEFAULT_MIN_TELO_ARRAY_SIZE = 10
 DEFAULT_NUM_TELO_CONTAINING_READS = 150
-EXPECTED_BREAKPOINT_POSITION = 1000
+SOFTCLIP_START_POS_IN_GENOME = 1000
 
 
 @dataclass
@@ -29,7 +29,7 @@ class TeloContainingReadGenerator:
     read_template: str = DEFAULT_NON_TELO_SEQ * 100 + DEFAULT_TELO_SEQ * 100
     num_reads: int = 200
     num_telo_containing_reads: int = DEFAULT_NUM_TELO_CONTAINING_READS
-    telo_start_pos_in_genome: int = EXPECTED_BREAKPOINT_POSITION
+    telo_start_pos_in_genome: int = SOFTCLIP_START_POS_IN_GENOME
     telo_start_pos_in_read: int = len(DEFAULT_NON_TELO_SEQ) * 100
     telo_array_size: int = len(DEFAULT_TELO_SEQ) * DEFAULT_MIN_TELO_ARRAY_SIZE * 2
     num_mutations: int = 0
@@ -138,13 +138,13 @@ def test_forward_breakpoint_S2G(read_generator, genome_interval, detection_param
     detection_params.bam_fname = read_generator.write_BAM()
     foci, _ = find_breakpoint_foci(detection_params, genome_interval)
     filtered_foci = [
-        elem for elem in foci if elem.start == EXPECTED_BREAKPOINT_POSITION
+        elem for elem in foci if elem.start == (SOFTCLIP_START_POS_IN_GENOME - 1)
     ]
     assert len(filtered_foci) == 1
     breakpoint_focus = filtered_foci[0]
     assert breakpoint_focus.contig == DEFAULT_CHROM
-    assert breakpoint_focus.start == EXPECTED_BREAKPOINT_POSITION
-    assert breakpoint_focus.end == EXPECTED_BREAKPOINT_POSITION + 1
+    assert breakpoint_focus.start == SOFTCLIP_START_POS_IN_GENOME - 1
+    assert breakpoint_focus.end == SOFTCLIP_START_POS_IN_GENOME
     assert breakpoint_focus.breakpoint_type == str(BreakpointType.S2G)
     assert (
         breakpoint_focus.num_supporting_reads__forward

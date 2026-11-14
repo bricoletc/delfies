@@ -19,7 +19,7 @@ After forking the repository and making changes, open a
 ```sh
 cd <delfies_directory>
 uv venv
-. .venv/bin/activate
+source .venv/bin/activate
 uv pip install .
 ```
 

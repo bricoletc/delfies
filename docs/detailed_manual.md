@@ -23,7 +23,7 @@
 - `breakpoint_locations.bed`: a BED-formatted file containing the location of identified 
    elimination breakpoints.
    - The location (columns 1,2 and 3) is provided as an interval of size one, and is defined
-     as the first eliminated base past the putative breakpoint. If multiple 
+     as the last retained base preceding the putative breakpoint. If multiple 
      putative breakpoints have been clustered, the single location with the maximal read support 
      is used.
    - The name column (column 4) records the breakpoint type, as defined above. 

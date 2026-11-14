@@ -61,23 +61,22 @@ def find_softclip_at_extremity(
     alignment-consuming positions on reference and query, and `_end` to 0-based
     exclusive alignment positions (i.e., 1 past the last alignment-consuming position).
 
-    In the returned object, we return the position of the first softclipped position in
-    both reference and read (query). If in forward orientation in the read,
-    no adjustment is needed, and if in reverse orientation, we subtract one.
+    In the returned object, we return the position of the last non-softclipped position in
+    both reference and read (query).
     """
     result = SoftclippedRead(
         read.query_sequence, read.reference_name, None, None, None, orientation
     )
     if orientation is Orientation.forward:
         if read.cigartuples[-1][0] == CSOFT_CLIP:
-            result.sc_ref = read.reference_end
-            result.sc_query = read.query_alignment_end
-            result.sc_length = len(result.sequence) - result.sc_query
+            result.sc_ref = read.reference_end - 1
+            result.sc_query = read.query_alignment_end - 1
+            result.sc_length = len(result.sequence) - read.query_alignment_end
     else:
         if read.cigartuples[0][0] == CSOFT_CLIP:
-            result.sc_ref = read.reference_start - 1
-            result.sc_query = read.query_alignment_start - 1
-            result.sc_length = result.sc_query + 1
+            result.sc_ref = read.reference_start
+            result.sc_query = read.query_alignment_start
+            result.sc_length = read.query_alignment_start
     if result.sc_ref is None:
         return None
     else:

@@ -89,8 +89,9 @@ class TestSoftclipDetection:
             sequence=pysam_read_with_3prime_softclips.query_sequence,
             reference_name=pysam_read_with_3prime_softclips.reference_name,
             sc_ref=pysam_read_with_3prime_softclips.reference_start
+            - 1
             + len(DEFAULT_ALIGNED_SEQ),
-            sc_query=len(DEFAULT_ALIGNED_SEQ),
+            sc_query=len(DEFAULT_ALIGNED_SEQ) - 1,
             sc_length=len(DEFAULT_SOFTCLIPPED_SEQ),
             orientation=Orientation.forward,
         )
@@ -108,8 +109,8 @@ class TestSoftclipDetection:
         assert result_reverse == SoftclippedRead(
             sequence=pysam_read_with_5prime_softclips.query_sequence,
             reference_name=pysam_read_with_5prime_softclips.reference_name,
-            sc_ref=pysam_read_with_5prime_softclips.reference_start - 1,
-            sc_query=len(DEFAULT_SOFTCLIPPED_SEQ) - 1,
+            sc_ref=pysam_read_with_5prime_softclips.reference_start,
+            sc_query=len(DEFAULT_SOFTCLIPPED_SEQ),
             sc_length=len(DEFAULT_SOFTCLIPPED_SEQ),
             orientation=Orientation.reverse,
         )
