@@ -61,17 +61,18 @@ def record_telomere_additions(
     telomere_tents = setup_telomere_tents()
     for read in reads_for_telomere_additions:
         sc_query = read.sc_query
+        ref_position_one_based = read.sc_ref + 1
         if read.orientation is Orientation.forward:
-            added_telomere = read.sequence[sc_query : sc_query + telomere_unit_length]
-            ref_position_one_based = read.sc_ref
+            added_telomere = read.sequence[
+                sc_query + 1 : sc_query + 1 + telomere_unit_length
+            ]
             template_nucleotide = genome.fetch(
                 read.reference_name, (ref_position_one_based, ref_position_one_based)
             )
         else:
             added_telomere = rev_comp(
-                read.sequence[sc_query + 1 - telomere_unit_length : sc_query + 1]
+                read.sequence[sc_query - telomere_unit_length : sc_query]
             )
-            ref_position_one_based = read.sc_ref + 2
             template_nucleotide = rev_comp(
                 genome.fetch(
                     read.reference_name,

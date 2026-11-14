@@ -61,8 +61,8 @@ def find_softclip_at_extremity(
     alignment-consuming positions on reference and query, and `_end` to 0-based
     exclusive alignment positions (i.e., 1 past the last alignment-consuming position).
 
-    In the returned object, we return the position of the last non-softclipped position in
-    both reference and read (query).
+    In the returned object, we return the 0-based position of the last
+    non-softclipped position in both reference and read (query).
     """
     result = SoftclippedRead(
         read.query_sequence, read.reference_name, None, None, None, orientation

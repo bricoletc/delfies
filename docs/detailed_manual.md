@@ -59,7 +59,7 @@
   containing telomere extensions (in 'S2G' mode only), which nucleotide in the reference 
   genome precedes the telomeric softclips in the read (column 'template_nucleotide'), 
   and which telomeric unit was added, i.e., starts the softclips in the read (column 'added_telomere').
-  This enables analysing how the telomerase operates, i.e. what template it preferentially uses, if at all,
+  This enables analysing how the telomerase operates, i.e. what template it preferentially uses, if any,
   and how it extends it.
 
 ## Applications

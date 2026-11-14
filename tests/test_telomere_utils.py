@@ -27,7 +27,7 @@ def softclipped_read():
     return SoftclippedRead(
         sequence=DEFAULT_ALIGNED_SEQ,
         reference_name="scaffold_1",
-        sc_ref=4,
+        sc_ref=3,
         sc_query=len(DEFAULT_ALIGNED_SEQ),
         sc_length=0,
         orientation=Orientation.forward,
@@ -176,7 +176,7 @@ class TestFindSoftClippedTeloArraysInReads:
 class TestRecordTelomereAdditions(ClassWithTempFasta):
     def test_record_telomere_addition_forward(self, softclipped_read):
         reference = ">scaffold_1\nATGCTTTTT\n"
-        softclipped_read.sc_query = 4
+        softclipped_read.sc_query = 3
         fasta = self.make_fasta(reference)
         result = record_telomere_additions(
             [softclipped_read],
@@ -188,11 +188,11 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
         expected_tent = expected.new()
         expected_tent.update(
             contig="scaffold_1",
-            start=softclipped_read.sc_ref - 1,
-            end=softclipped_read.sc_ref,
+            start=softclipped_read.sc_ref,
+            end=softclipped_read.sc_ref + 1,
             template_nucleotide="C",
             added_telomere=DEFAULT_ALIGNED_SEQ[
-                softclipped_read.sc_query : softclipped_read.sc_query + 6
+                softclipped_read.sc_query + 1 : softclipped_read.sc_query + 1 + 6
             ],
             sample_name="test_sample",
         )
@@ -202,8 +202,9 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
     def test_record_telomere_addition_reverse(self, softclipped_read):
         reference = ">scaffold_1\nCCCCCTTGGA\n"
         softclipped_read.sc_query = (
-            len(DEFAULT_ALIGNED_SEQ) - 6
-        )  # 1 + the length of the common sequence with 'DEFAULT_ALIGNED_SEQ', that, is 'TTGGA'
+            len(DEFAULT_ALIGNED_SEQ) - 5
+        )  # = the length of the common sequence with 'DEFAULT_ALIGNED_SEQ', that, is 'TTGGA'
+        softclipped_read.sc_ref = 5
         softclipped_read.orientation = Orientation.reverse
         fasta = self.make_fasta(reference)
         result = record_telomere_additions(
@@ -218,8 +219,8 @@ class TestRecordTelomereAdditions(ClassWithTempFasta):
         # of the sequence in 'DEFAULT_ALIGNED_SEQ', due to read's reverse orientation.
         expected_tent.update(
             contig="scaffold_1",
-            start=softclipped_read.sc_ref + 1,
-            end=softclipped_read.sc_ref + 2,
+            start=softclipped_read.sc_ref,
+            end=softclipped_read.sc_ref + 1,
             template_nucleotide="A",
             added_telomere="TTTTGG",
             sample_name="test_sample",
